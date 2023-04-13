@@ -102,12 +102,63 @@ def analisaArquivo():
 
         print('Total juros: ' + str(valor_total))
 
-           
-            
-
         print('Total de Pagamentos: R$ ' + str(total_pagamentos))
         print('Total de Multas:     R$ ' + str(total_multas))
         print('Total de Juros:      R$ ' + str(total_juros))
+        
+def pegaParcelaLinha(linha):
+    if linha != '':
+        capturado = linha[56:63].replace(" ", "")
+                
+        try:
+            parcela = int(capturado)
+        except:
+            parcela = 0
+    
+    return parcela
+
+def pegaDataLinha(linha):
+    if linha != '':
+        capturado = linha[1:11].replace(" ", "")                        
+    
+    return capturado
+
+def pegaSaldoLinha(linha):
+    if linha != '':
+        capturado = linha[120:134].replace(" ", "")
+        capturado = capturado.replace(".", "")
+        capturado = capturado.replace(",", ".")
+    
+    return capturado
+
+def pegaTxJuroLinha(linha):
+    if ("TX JR NORMAL" in linha):
+        capturado = linha[17:35].replace(" ", "")
+        capturado = capturado.replace("%", "")
+        capturado = capturado.replace("a", "")
+        capturado = capturado.replace("m", "")
+        capturado = capturado.replace(".", "")
+        
+        valor       = float(capturado.replace(",","."))
+        valor_final = "{:.2f}".format(valor)        
+    
+    return valor_final
+
+def pegaDebitoLinha(linha):
+    if linha != '':
+        capturado = linha[63:82].replace(" ", "")
+        capturado = capturado.replace(".", "")
+        valor     = capturado.replace(",",".")
+    
+    return float(valor)
+
+def pegaCreditoLinha(linha):
+    if linha != '':
+        capturado = linha[83:107].replace(" ", "")
+        capturado = capturado.replace(".", "")
+        valor     = capturado.replace(",",".")
+    
+    return float(valor)
                 
 analisaArquivo()          
           

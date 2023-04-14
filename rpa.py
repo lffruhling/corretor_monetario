@@ -6,6 +6,7 @@ import decimal
 vLocal           = 'C:/Temp/ficha.PRN'
 versao           = ''
 parcela          = ''
+parcelaInt       = 0
 valor_financiado = ''
 amortizacoes     = []
 multas           = []
@@ -16,6 +17,7 @@ total_pagamentos = 0
  
 def analisaArquivo():    
     global parcela
+    global parcelaInt
     global versao
     global valor_financiado
     global amortizacoes
@@ -51,7 +53,7 @@ def analisaArquivo():
                     parcela = parcela.split('/')
                     
                     if parcela != '':
-                        parcela = int(parcela[0])                
+                        parcelaInt = int(parcela[0])                
                         
                 #Captura o valor Financiado
                 if (vlinha == 7):                    
@@ -73,6 +75,11 @@ def analisaArquivo():
                 if ("061  JUROS INADIMPLENTE" in linha):                    
                     valor = linha[63:82].replace(" ","")
                     juros.append(valor.replace(".",""))
+
+                if parcelaInt > 0:
+                    if existeTextoLinha(linha, '0' + str(parcelaInt) + ')'):
+                        data_parcela = pegaDataVencimentoParcela(linha, parcelaInt)
+                        
                 
                     
                 vlinha = vlinha + 1    
@@ -89,6 +96,7 @@ def analisaArquivo():
         for juro in juros:
             valor        = float(juro.replace(",","."))
             total_juros  = total_juros + valor   
+                
 
         count = 0
         valor_total = 72000
@@ -102,9 +110,11 @@ def analisaArquivo():
 
         print('Total juros: ' + str(valor_total))
 
-        print('Total de Pagamentos: R$ ' + str(total_pagamentos))
-        print('Total de Multas:     R$ ' + str(total_multas))
-        print('Total de Juros:      R$ ' + str(total_juros))
+        print('Parcela da Ficha Gráfica: ' + str(parcelaInt))
+        print('Data de Vencimento:       ' + str(data_parcela))
+        print('Total de Pagamentos: R$   ' + str(total_pagamentos))
+        print('Total de Multas:     R$   ' + str(total_multas))
+        print('Total de Juros:      R$   ' + str(total_juros))
         
 def pegaParcelaLinha(linha):
     if linha != '':
@@ -159,7 +169,25 @@ def pegaCreditoLinha(linha):
         valor     = capturado.replace(",",".")
     
     return float(valor)
-                
+
+def pegaDataVencimentoParcela(linha, parcela):
+    if linha != '':
+        if parcela <= 99:
+            posicao_inicial = linha.find('0' + str(parcela) + ')') + 5
+            posicao_final   = posicao_inicial +  12
+            texto_capturado = linha[posicao_inicial:posicao_final].replace(" ","")
+
+            data_capturada = texto_capturado
+    
+    return data_capturada
+
+def existeTextoLinha(linha, texto):    
+    if (texto in linha):
+        return True
+    else:
+        return False
+
+
 analisaArquivo()          
           
   

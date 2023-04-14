@@ -7,6 +7,7 @@ vLocal           = 'C:/Temp/ficha.PRN'
 versao           = ''
 parcela          = ''
 parcelaInt       = 0
+data_parcela     = ''   
 valor_financiado = ''
 amortizacoes     = []
 multas           = []
@@ -14,10 +15,14 @@ juros            = []
 total_multas     = 0
 total_juros      = 0
 total_pagamentos = 0
+valor_saldo      = 0
+vContinua        = False
+vIdentificouData = False
  
 def analisaArquivo():    
     global parcela
     global parcelaInt
+    global data_parcela
     global versao
     global valor_financiado
     global amortizacoes
@@ -25,6 +30,9 @@ def analisaArquivo():
     global total_pagamentos
     global total_multas
     global total_juros
+    global valor_saldo
+    global vContinua
+    global vIdentificouData
     
     with open(vLocal, 'r') as reader:
         ficha_grafica = reader.readlines()  
@@ -79,6 +87,19 @@ def analisaArquivo():
                 if parcelaInt > 0:
                     if existeTextoLinha(linha, '0' + str(parcelaInt) + ')'):
                         data_parcela = pegaDataVencimentoParcela(linha, parcelaInt)
+                        
+                    if data_parcela != '':
+                        if (data_parcela in linha):
+                            vIdentificouData = True
+                            valor_saldo = pegaSaldoLinha(linha)
+                            
+                    if (vIdentificouData and not(data_parcela in linha)):
+                        vContinua = True
+                        
+                    if vContinua:
+                        print('Aqui identificou o saldo do último lançamento da data de vencimento.') 
+                        print(str(valor_saldo))
+                        # A partir daqui temos o saldo na variavel valor_saldo para poder ser utilizado para o calculo.
                         
                 
                     
@@ -186,6 +207,8 @@ def existeTextoLinha(linha, texto):
         return True
     else:
         return False
+    
+
 
 
 analisaArquivo()          

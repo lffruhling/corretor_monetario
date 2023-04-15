@@ -50,7 +50,7 @@ def analisaArquivo():
                 
             vlinha = vlinha + 1
 
-        ## Ficha Gráfica Sicredi        
+        ## Se for Ficha Gráfica Sicredi        
         if versao == 'raizes':
             vlinha = 1
             for linha in ficha_grafica:                                    
@@ -207,9 +207,6 @@ def existeTextoLinha(linha, texto):
         return True
     else:
         return False
-    
-
-
 
 analisaArquivo()          
           

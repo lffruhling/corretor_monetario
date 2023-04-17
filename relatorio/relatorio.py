@@ -1,5 +1,8 @@
 from docxtpl import DocxTemplate
 
+## Este trcho tem por objetivo carregar um .docx template, onde substituimos tags pelas informações
+## As tags são identificadas entre chaves e atribuídas dentro do context
+
 template = DocxTemplate('C:/Temp/Template.docx')
 
 tipo = "IPCA"

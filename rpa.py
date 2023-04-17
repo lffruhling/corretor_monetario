@@ -18,6 +18,7 @@ total_pagamentos = 0
 valor_saldo      = 0
 vContinua        = False
 vIdentificouData = False
+linha_inadimplente = 0
  
 def analisaArquivo():    
     global parcela
@@ -33,6 +34,7 @@ def analisaArquivo():
     global valor_saldo
     global vContinua
     global vIdentificouData
+    global linha_inadimplente
     
     with open(vLocal, 'r') as reader:
         ficha_grafica = reader.readlines()  
@@ -89,17 +91,19 @@ def analisaArquivo():
                         data_parcela = pegaDataVencimentoParcela(linha, parcelaInt)
                         
                     if data_parcela != '':
-                        if (data_parcela in linha):
+                        if ((data_parcela in linha)):
                             vIdentificouData = True
                             valor_saldo = pegaSaldoLinha(linha)
+                            linha_inadimplente = vlinha
                             
                     if (vIdentificouData and not(data_parcela in linha)):
                         vContinua = True
                         
                     if vContinua:
-                        print('Aqui identificou o saldo do último lançamento da data de vencimento.') 
+                        #print('Aqui identificou o saldo do último lançamento da data de vencimento.') 
                         print(str(valor_saldo))
                         # A partir daqui temos o saldo na variavel valor_saldo para poder ser utilizado para o calculo.
+                        
                         
                 
                     

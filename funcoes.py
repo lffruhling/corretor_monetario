@@ -3,7 +3,8 @@ import MySQLdb
 import constantes as c
 
 def conexao():
-    return MySQLdb.connect(host="localhost", user=c.USUARIO_DB, passwd=c.SENHA_DB,db=c.NOME_DB)
+    #return MySQLdb.connect(host="localhost", user=c.USUARIO_DB, passwd=c.SENHA_DB,db=c.NOME_DB)
+    return MySQLdb.connect(host="mysql.edersondallabrida.com", user=c.USUARIO_DB1, passwd=c.SENHA_DB1,db=c.NOME_DB1)
 
 def carregaIndice(tabela, ano, mes):
     p_mes = ''
@@ -38,16 +39,14 @@ def carregaIndice(tabela, ano, mes):
         cursor = db.cursor()
         cursor.execute("SELECT " + p_mes + " FROM " + tabela + " WHERE ano = " + str(ano))
         resultado = cursor.fetchall()
+
+        if len(resultado) > 0:
+            valor = str(resultado[0][0]*100)
+            return round(float(valor),2)
+        else:
+            print('Sem resultados')
+            return 0
     except Exception as erro:
         print('Ocorreu um erro ao tentar carregar o indice ' + str(tabela) + '. ' + str(erro))
 
-    print(resultado[0][0])
-    if len(resultado) > 0:
-        valor = str(resultado[0][0]*100)
-        return round(float(valor),2)
-    else:
-        print('Sem resultados')
-        return 0
-
 #dados = carregaIndice('igpm', 2022, 3)
-

@@ -1,17 +1,11 @@
 from datetime import datetime
-import time
-import os
-import pdfplumber
 import funcoes as f
 
 vLinhaLancamento = False
-vArquivo         = 'C:/Temp/ficha_cresol1.pdf'
 vParcelas        = 0
 array_datas      = ['01/','02/','03/','04/','05/','06/','07/','08/','09/','10/','11/','12/',
                     '13/','14/','15/','16/','17/','18/','19/','20/','21/','22/','23/','24/',
                     '25/','26/','27/','28/','29/','30/','31/']
-
-vPath            = 'C:/Temp/Fichas_Graficas'
 
 ## Variaveis cabeçalho
 associado        = ''
@@ -36,26 +30,6 @@ saldo            = 0
 tipo             = ''
 valor_credito    = 0
 valor_debito     = 0
-
-def converterPDF(vPath, vNomeArquivo):    
-    try:
-        ## Carrega arquivo
-        pdf = pdfplumber.open(vPath + '/' + vNomeArquivo + '.pdf')
-
-        ## Converte PDF em TXT
-        for pagina in pdf.pages:
-            texto = pagina.extract_text(x_tolerance=1)
-            
-            with open('C:/Temp/ficha_cresol1.txt', 'a') as arquivo_txt:
-                arquivo_txt.write(str(texto))
-
-        return True
-    
-    except Exception as erro:
-        with open('C:/Temp/ERRO_LOG.txt', 'a') as arquivo_txt:
-                arquivo_txt.write(str(erro))
-    
-        return False
 
 def importar_cabecalho(vArquivoTxt):    
     global titulo
@@ -141,7 +115,7 @@ def importar_cabecalho(vArquivoTxt):
     db.commit()
 
     if cursor.rowcount > 0:
-        print('Cabeçalho Ficha Gráfica Sicredi importado com sucesso!')
+        print('Cabeçalho importado com sucesso!')
         return True
 
 def importar_detalhes(vArquivoTxt, titulo):    
@@ -252,46 +226,9 @@ def importar_detalhes(vArquivoTxt, titulo):
 
     db.commit()
     if cursor.rowcount > 0:
-        print('Detalhe Ficha Gráfica Sicredi importado com sucesso!')
+        print('Detalhe Ficha Gráfica Cresol importado com sucesso!')
     
-def main():
-    nome_arquivo = ''
-    tipo_arquivo = ''
-    ## Verificar se existe path em C:/Temp/Fichas Gráficas senão, criar
-    ## Verificar dentro da pasta se existe e criar as pastas processados
-    ## Verificar dentro da pasta se existe algum arquivo PDF ou txt e pegar o nome dele automaticamente
-    ## Usar esse arquivo para realizar a importação, criando uma pasta para o titulo em processados, onde ficará o resultado.
-
-    if not os.path.isdir(vPath): # vemos de este diretorio ja existe        
-        os.mkdir(vPath)
-        os.mkdir(vPath + '/Processados')
-
-    for arquivo in os.walk(vPath):
-        if str(arquivo[0]) == vPath:
-            for ficha in arquivo[2]:
-                arquivo_capturado = ficha.split('.')
-                nome_arquivo = arquivo_capturado[0]
-                tipo_arquivo = arquivo_capturado[1].replace(" ","")
-
-                vCaminhoTxt = vPath + '/' + nome_arquivo + '.txt'
-
-                if not os.path.isdir(vPath + '/Processados/' + nome_arquivo): # vemos de este diretorio ja existe        
-                    os.mkdir(vPath + '/Processados/' + nome_arquivo)           
-
-                if tipo_arquivo == 'pdf':
-                    if converterPDF(vPath, nome_arquivo):                        
-                        importar_cabecalho(vCaminhoTxt)         
-                        importar_detalhes(vCaminhoTxt)
-                        os.remove(vCaminhoTxt)
-
-                if tipo_arquivo == 'txt':
-                    importar_cabecalho(vCaminhoTxt)         
-                    importar_detalhes(vCaminhoTxt)
-                    os.remove(vCaminhoTxt)
-
-
-
-main()
-
-#importar_cabecalho('C:/Temp/ficha_cresol1.txt')
-#importar_detalhes('C:/Temp/ficha_cresol1.txt', titulo)
+def importarCresol(vArquivoTxt):
+    print('Importando arquivo: ' + str(vArquivoTxt))
+    if importar_cabecalho(vArquivoTxt):
+        importar_detalhes(vArquivoTxt, titulo)

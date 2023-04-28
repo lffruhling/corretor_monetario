@@ -1,7 +1,4 @@
 import funcoes as f
-import time
-import sys 
-import decimal
 import datetime
 from datetime import datetime
 
@@ -172,136 +169,130 @@ def pegaDataLiberacaoLinha(linha):
     
     return data_final
 
-
-
-def importaFichaGrafica(versao, vLocal):
-    global valor_financiado
-    
-    if(versao == "sicredi"):
+def importaFichaGrafica(vCaminhoTxt):
+    global valor_financiado        
         
-        taxa_juro        = 0
-        versao           = 'SICREDI'
-        associado        = ''
-        nro_parcelas     = 0
-        parcela          = 0
-        valor_financiado = 0
-        liberacao        = datetime.now()
-        situacao         = 'ATIVO'
-        titulo           = ''
+    taxa_juro        = 0    
+    associado        = ''
+    nro_parcelas     = 0
+    parcela          = 0
+    valor_financiado = 0
+    liberacao        = datetime.now()    
+    titulo           = ''
+
+    with open(vCaminhoTxt, 'r') as reader:
+        
+        ficha_grafica = reader.readlines()  
+                    
+        vlinha = 1        
+        for linha in ficha_grafica:         
+
+            if ("TITULO:" in linha and vlinha <= 5):
+                titulo = linha[122:134].replace(" ", "")
+
+            if("TX JR NORMAL" in linha):
+                taxa_juro = pegaTxJuroLinha(linha)
+                
+            if("ASSOCIADO ....:" in linha):
+                associado = pegaAssociadoLinha(linha)
+                
+            if("NUMERO DE PARCELAS ...:" in linha):                    
+                dados = pegaParcelaLinha(linha)
+                
+                nro_parcelas = int(dados[1])
+                parcela      = int(dados[0])
+                
+            if("VALOR FINANCIADO .....:" in linha):
+                valor_financiado = pegaValorFinanciadoLinha(linha)    
+                
+            if("VALOR FINANCIADO .....:" in linha):
+                liberacao = pegaDataLiberacaoLinha(linha)
+                            
+            vlinha = vlinha + 1                               
+                
+    db     = f.conexao()
+    cursor = db.cursor()
+
+    sql_update = 'UPDATE ficha_grafica SET situacao = "INATIVO" WHERE titulo = %s AND situacao = "ATIVO"'
+    cursor.execute(sql_update, (titulo,))
+    cursor.fetchall()
+    db.commit()
+
+    vsql = 'INSERT INTO ficha_grafica(versao, associado, liberacao, nro_parcelas, parcela, situacao, titulo, tx_juro, valor_financiado)\
+        VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)'
     
-        with open(vLocal, 'r') as reader:
-            
-            ficha_grafica = reader.readlines()  
-                        
-            vlinha = 1        
-            for linha in ficha_grafica:         
+    parametros = ('sicredi', str(associado), liberacao, nro_parcelas, parcela, 'ATIVO', titulo, taxa_juro, valor_financiado)
+    
 
-                if ("TITULO:" in linha and vlinha <= 5):
-                    titulo = linha[122:134].replace(" ", "")
+    cursor.execute(vsql, parametros)
+    resultado = cursor.fetchall()
+    db.commit()
 
-                if("TX JR NORMAL" in linha):
-                    taxa_juro = pegaTxJuroLinha(linha)
-                    
-                if("ASSOCIADO ....:" in linha):
-                    associado = pegaAssociadoLinha(linha)
-                    
-                if("NUMERO DE PARCELAS ...:" in linha):                    
-                    dados = pegaParcelaLinha(linha)
-                    
-                    nro_parcelas = int(dados[1])
-                    parcela      = int(dados[0])
-                    
-                if("VALOR FINANCIADO .....:" in linha):
-                    valor_financiado = pegaValorFinanciadoLinha(linha)    
-                    
-                if("VALOR FINANCIADO .....:" in linha):
-                    liberacao = pegaDataLiberacaoLinha(linha)
-                                
-                vlinha = vlinha + 1                               
-                    
+    if cursor.rowcount > 0:
+        print('Cabeçalho Ficha Gráfica Sicredi importado com sucesso!')
+        return True
+
+def importaFichaGraficaDetalhe(vArquivoTxt):
+    global valor_financiado        
+        
+    data            = datetime.now()
+    codigo          = 0    
+    historico       = ''
+    valor_debito    = 0
+    valor_credito   = 0
+    valor_saldo     = 0
+    parcela         = 0
+    situacao        = 'ATIVO'
+    titulo          = ''
+
+    array_datas = ['01/','02/','03/','04/','05/','06/','07/','08/','09/','10/','11/','12/',
+                    '13/','14/','15/','16/','17/','18/','19/','20/','21/','22/','23/','24/',
+                    '25/','26/','27/','28/','29/','30/','31/']
+
+    with open(vArquivoTxt, 'r') as reader:
         db     = f.conexao()
         cursor = db.cursor()
 
-        sql_update = 'UPDATE ficha_grafica SET situacao = "INATIVO" WHERE titulo = %s AND situacao = "ATIVO"'
-        cursor.execute(sql_update, (titulo,))
-        cursor.fetchall()
-        db.commit()
-
-        vsql = 'INSERT INTO ficha_grafica(versao, associado, liberacao, nro_parcelas, parcela, situacao, titulo, tx_juro, valor_financiado)\
-            VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+        encontrou_titulo = False
         
-        parametros = ('sicredi', str(associado), liberacao, nro_parcelas, parcela, 'ATIVO', titulo, taxa_juro, valor_financiado)
-        
+        ficha_grafica = reader.readlines()  
+                    
+        vlinha = 1        
+        for linha in ficha_grafica:         
+            if ("TITULO:" in linha and vlinha <= 5 and encontrou_titulo == False):
+                titulo = linha[122:134].replace(" ", "")
 
-        cursor.execute(vsql, parametros)
-        resultado = cursor.fetchall()
-        db.commit()
+                sql_update = 'UPDATE ficha_detalhe SET situacao = "INATIVO" WHERE titulo = %s AND situacao = "ATIVO"'
+                cursor.execute(sql_update, (titulo,))
+                cursor.fetchall()
+                db.commit()
 
-        if cursor.rowcount > 0:
-            print('Cabeçalho Ficha Gráfica Sicredi importado com sucesso!')
+                encontrou_titulo = True
 
-def importaFichaGraficaDetalhe(versao, vLocal):
-    global valor_financiado
-    
-    if(versao == "sicredi"):
-        
-        data            = datetime.now()
-        codigo          = 0
-        versao          = 'SICREDI'
-        historico       = ''
-        valor_debito    = 0
-        valor_credito   = 0
-        valor_saldo     = 0
-        parcela         = 0
-        situacao        = 'ATIVO'
-        titulo          = ''
+            if(linha[0:3] in array_datas):
+                data          = pegaDataLinha(linha)
+                codigo        = pegaCodigoLinha(linha)
+                historico     = pegaHistoricoLinha(linha)
+                parcela       = pegaParcelaDetalheLinha(linha)
+                valor_debito  = pegaDebitoLinha(linha)
+                valor_credito = pegaCreditoLinha(linha)
+                valor_saldo   = pegaSaldoLinha(linha)
+                situacao      = "ATIVO"                                                                
+                
+                vsql = 'INSERT INTO ficha_detalhe(titulo, data, cod, historico, parcela, situacao, valor_credito, valor_debito, valor_saldo)\
+                    VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+                
+                parametros = (str(titulo), data, str(codigo), historico, str(parcela), situacao, valor_credito, valor_debito, valor_saldo)
+                
+                cursor.execute(vsql, parametros)
+                resultado = cursor.fetchall()                   
 
-        array_datas = ['01/','02/','03/','04/','05/','06/','07/','08/','09/','10/','11/','12/',
-                       '13/','14/','15/','16/','17/','18/','19/','20/','21/','22/','23/','24/',
-                       '25/','26/','27/','28/','29/','30/','31/']
-    
-        with open(vLocal, 'r') as reader:
-
-            db     = f.conexao()
-            cursor = db.cursor()
-
-            encontrou_titulo = False
+                vlinha = vlinha + 1
+    db.commit()
+    if cursor.rowcount > 0:
+        print('Detalhe Ficha Gráfica Sicredi importado com sucesso!')
             
-            ficha_grafica = reader.readlines()  
-                        
-            vlinha = 1        
-            for linha in ficha_grafica:         
-                print('Importando linha: ' +str(vlinha))
-                if ("TITULO:" in linha and vlinha <= 5 and encontrou_titulo == False):
-                    titulo = linha[122:134].replace(" ", "")
-
-                    sql_update = 'UPDATE ficha_detalhe SET situacao = "INATIVO" WHERE titulo = %s AND situacao = "ATIVO"'
-                    cursor.execute(sql_update, (titulo,))
-                    cursor.fetchall()
-                    db.commit()
-
-                    encontrou_titulo = True
-
-                if(linha[0:3] in array_datas):
-                    data          = pegaDataLinha(linha)
-                    codigo        = pegaCodigoLinha(linha)
-                    historico     = pegaHistoricoLinha(linha)
-                    parcela       = pegaParcelaDetalheLinha(linha)
-                    valor_debito  = pegaDebitoLinha(linha)
-                    valor_credito = pegaCreditoLinha(linha)
-                    valor_saldo   = pegaSaldoLinha(linha)
-                    situacao      = "ATIVO"                                                                
-                    
-                    vsql = 'INSERT INTO ficha_detalhe(titulo, data, cod, historico, parcela, situacao, valor_credito, valor_debito, valor_saldo)\
-                        VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)'
-                    
-                    parametros = (str(titulo), data, str(codigo), historico, str(parcela), situacao, valor_credito, valor_debito, valor_saldo)
-                    
-
-                    cursor.execute(vsql, parametros)
-                    resultado = cursor.fetchall()                   
-
-                    vlinha = vlinha + 1
-        db.commit()
-        if cursor.rowcount > 0:
-            print('Detalhe Ficha Gráfica Sicredi importado com sucesso!')
+def importarSicredi(vCaminhoTxt):
+    print('Importando arquivo: ' + str(vCaminhoTxt))
+    if importaFichaGrafica(vCaminhoTxt):
+        importaFichaGraficaDetalhe(vCaminhoTxt)        

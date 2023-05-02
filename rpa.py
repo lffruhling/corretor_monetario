@@ -1,3 +1,4 @@
+#teste de commit
 import funcoes as f
 import time
 import sys 

@@ -22,33 +22,6 @@ lancamentos = []
 def alimentaDetalhesRelatorio(lista, data, descricao, valor, correcao, corrigido, juros, total):
     lista.append({"data":data, "descricao":descricao, "valor":valor,"correcao":correcao,"corrigido":corrigido,"juros":juros,"total":total})
 
-def janelaPrincipal():
-    sg.theme('Reddit')
-
-    layout = [    
-        [sg.Text(text='Corretor Monetário')],      
-        [sg.Text(text='Selecione a Ficha Gráfica', key='caminho_arquivo'), sg.FileBrowse(button_text='Procurar', key='arquivo')],    
-        [sg.Checkbox(text='IGPM'), sg.Checkbox(text='IPCA'), sg.Checkbox(text='CDI')],    
-        [sg.Button('Calcular'), sg.Button('Fechar')]      
-    ]
-
-    tela = sg.Window('Corretor', layout, size=(400,200))
-
-    while True:                
-        eventos, valores = tela.read()
-
-        if eventos == 'Calcular':
-            if valores['arquivo'] != '':
-                caminho = valores['arquivo']
-                sicredi.importarSicredi(caminho)
-
-                sg.popup('Processo Finalizado')
-                  
-    
-        if eventos == sg.WINDOW_CLOSED:
-            break
-        if eventos == 'Fechar':
-            break
 
 def converterPDF(vCaminho_arquivo):    
     try:

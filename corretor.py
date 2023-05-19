@@ -25,7 +25,6 @@ lancamentos = []
 def alimentaDetalhesRelatorio(lista, data, descricao, valor, correcao, corrigido, juros, total):
     lista.append({"data":data, "descricao":descricao, "valor":valor,"correcao":correcao,"corrigido":corrigido,"juros":juros,"total":total})
 
-
 def converterPDF(vCaminho_arquivo):    
     try:
         ## Carrega arquivo
@@ -33,7 +32,6 @@ def converterPDF(vCaminho_arquivo):
 
         vNome        = vCaminho_arquivo.split('/')
         vNomeArquivo = vNome[-1][:-4]
-
 
         ## Converte PDF em TXT
         for pagina in pdf.pages:
@@ -83,7 +81,6 @@ def verificaLicenca():
     except WindowsError:
         return None
     
-
 def licenca():
 
     local = wrg.HKEY_CURRENT_USER            
@@ -119,8 +116,7 @@ def licenca():
             break
         if eventos == 'Fechar':
             tela_ativar.close()            
-    
-    
+        
 def main():            
     nome_arquivo       = ''
     tipo_arquivo       = ''
@@ -161,7 +157,6 @@ def main():
             progress_bar.update(visible=False)
             progress_bar.UpdateBar(0)
             
-
             if eventos == 'Calcular':
                 progress_bar.update(visible=True)
                 progress_bar.UpdateBar(50)
@@ -194,7 +189,7 @@ def main():
                     else:
                         arquivo_importar = caminho
 
-                    progress_bar.UpdateBar(40)
+                    progress_bar.UpdateBar(34)
 
                     if arquivo_importar != None:
                         
@@ -210,17 +205,16 @@ def main():
 
                         db     = f.conexao()
                         cursor = db.cursor()
-                        tipo = 'Correcao_Comum'                    
+                        tipo = 'Correcao_Comum'     
+                        
+                        ## Aqui Iniciaria a busca dos dados do banco e o calculo, adicionando as linhas calculadas para a confecção do relatório               
                         
                         if versao == 'sicredi':                        
-                            ##Busca dados do cabeçalho no BD
-                            
-                            #sql_consulta = 'select titulo,associado,nro_parcelas,parcela,valor_financiado,tx_juro,multa,liberacao from ficha_grafica WHERE titulo = %s AND situacao = "ATIVO"'
-                            #cursor.execute(sql_consulta, (titulo,))                                                                        
-                            sql_consulta = 'select titulo,associado,modalidade_amortizacao,nro_parcelas,parcela,valor_financiado,tx_juro,multa,liberacao from ficha_grafica WHERE situacao = "ATIVO"'
-                            cursor.execute(sql_consulta)                                                                        
+                            ##Busca dados do cabeçalho no BD                            
+                            sql_consulta = 'select titulo,associado,nro_parcelas,parcela,valor_financiado,tx_juro,multa,liberacao from ficha_grafica WHERE titulo = %s AND situacao = "ATIVO"'
+                            cursor.execute(sql_consulta, (titulo,))                                                                        
                             dados_cabecalho = cursor.fetchall()
-                                                                                                    
+                                                                                                                                                                                                                              
                             ##busca detalhes do BD
                             ##Alimenta variaveis para relatorio
                         else:
@@ -229,13 +223,13 @@ def main():
                             dados_cabecalho = cursor.fetchall()                                        
                             
                         context = {
-                                        "nome_associado" : dados_cabecalho[0][1],
-                                        "tipo_correcao"  : tipo,
-                                        "numero_titulo"  : dados_cabecalho[0][0],
-                                        "forma_calculo"  : "Parcelas Atualizadas Individualmente De 27/09/2013 a 11/04/2023 sem correção Multa de 2,0000 sobre o valor corrigido+juros principais+juros moratórios",
-                                        "forma_juros"    : "Juros ok",
-                                        "lancamentos"    : lancamentos
-                                    }
+                                      "nome_associado" : dados_cabecalho[0][1],
+                                      "tipo_correcao"  : tipo,
+                                      "numero_titulo"  : dados_cabecalho[0][0],
+                                      "forma_calculo"  : "Parcelas Atualizadas Individualmente De 27/09/2013 a 11/04/2023 sem correção Multa de 2,0000 sobre o valor corrigido+juros principais+juros moratórios",
+                                      "forma_juros"    : "Juros ok",
+                                      "lancamentos"    : lancamentos
+                                  }
                         progress_bar.UpdateBar(86)
                         ## Gera o relatório e transforma em .pdf
                         template = DocxTemplate('C:/Temp/Fichas_Graficas/Template.docx')                    
@@ -244,9 +238,7 @@ def main():
                         convert(path_destino + '/' + tipo + '.docx', path_destino + '/' + tipo + '.pdf')
                         os.remove(path_destino + '/' + tipo + '.docx')
                         
-                        progress_bar.UpdateBar(96)
-                        
-                        
+                        progress_bar.UpdateBar(96)                                                
                     try:
                         if remove_arquivo:
                             os.remove(arquivo_importar)

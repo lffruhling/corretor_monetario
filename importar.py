@@ -239,11 +239,11 @@ def importaFichaGrafica(vCaminhoTxt):
     resultado = cursor.fetchall()
     db.commit()
 
-    if cursor.rowcount > 0:
+    if cursor.rowcount > 0:        
         print('Cabeçalho Ficha Gráfica Sicredi importado com sucesso!')
-        return True
+        return cursor.lastrowid
 
-def importaFichaGraficaDetalhe(vArquivoTxt):
+def importaFichaGraficaDetalhe(vArquivoTxt, id_ficha_grafica):
     global valor_financiado        
         
     data            = datetime.now()
@@ -291,10 +291,10 @@ def importaFichaGraficaDetalhe(vArquivoTxt):
                 valor_saldo   = pegaSaldoLinha(linha)
                 situacao      = "ATIVO"                                                                
                 
-                vsql = 'INSERT INTO ficha_detalhe(titulo, data, cod, historico, parcela, situacao, valor_credito, valor_debito, valor_saldo)\
-                    VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+                vsql = 'INSERT INTO ficha_detalhe(id_ficha_grafica, titulo, data, cod, historico, parcela, situacao, valor_credito, valor_debito, valor_saldo)\
+                    VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
                 
-                parametros = (str(titulo), data, str(codigo), historico, str(parcela), situacao, valor_credito, valor_debito, valor_saldo)
+                parametros = (id_ficha_grafica, str(titulo), data, str(codigo), historico, str(parcela), situacao, valor_credito, valor_debito, valor_saldo)
                 
                 cursor.execute(vsql, parametros)
                 resultado = cursor.fetchall()                   
@@ -308,7 +308,8 @@ def importaFichaGraficaDetalhe(vArquivoTxt):
             
 def importarSicredi(vCaminhoTxt):
     print('Importando arquivo: ' + str(vCaminhoTxt))
-    if importaFichaGrafica(vCaminhoTxt):
-        ficha_titulo = importaFichaGraficaDetalhe(vCaminhoTxt)        
+    ficha_grafica = importaFichaGrafica(vCaminhoTxt)
+    if ficha_grafica > 0:
+        ficha_titulo = importaFichaGraficaDetalhe(vCaminhoTxt, ficha_grafica)        
 
     return ficha_titulo

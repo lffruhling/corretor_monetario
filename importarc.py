@@ -131,9 +131,9 @@ def importar_cabecalho(vArquivoTxt):
 
     if cursor.rowcount > 0:
         print('Cabeçalho importado com sucesso!')
-        return True
+        return cursor.lastrowid
 
-def importar_detalhes(vArquivoTxt, titulo):    
+def importar_detalhes(vArquivoTxt, titulo, id_ficha_grafica):    
     global vLinhaLancamento        
     global parcela
     global data_vencimento
@@ -229,10 +229,10 @@ def importar_detalhes(vArquivoTxt, titulo):
                     valor_debito  = 0                     
 
                 ## Realiza a inserção no BD
-                vsql = 'INSERT INTO ficha_detalhe(titulo, data, cod, historico, parcela, situacao, valor_credito, valor_debito, valor_saldo)\
-                        VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)'                
+                vsql = 'INSERT INTO ficha_detalhe(id_ficha_grafica, titulo, data, cod, historico, parcela, situacao, valor_credito, valor_debito, valor_saldo)\
+                        VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'                
                     
-                parametros = (str(titulo), data_movimento, str(operacao), descricao, str(parcela), "ATIVO", valor_credito, valor_debito, saldo)                
+                parametros = (id_ficha_grafica, str(titulo), data_movimento, str(operacao), descricao, str(parcela), "ATIVO", valor_credito, valor_debito, saldo)                
                 cursor.execute(vsql, parametros)
                 resultado = cursor.fetchall()                                               
 
@@ -245,7 +245,8 @@ def importar_detalhes(vArquivoTxt, titulo):
     
 def importarCresol(vArquivoTxt):
     print('Importando arquivo: ' + str(vArquivoTxt))
-    if importar_cabecalho(vArquivoTxt):
-        importar_detalhes(vArquivoTxt, titulo)
+    ficha_grafica = importar_cabecalho(vArquivoTxt)
+    if ficha_grafica > 0:
+        importar_detalhes(vArquivoTxt, titulo, ficha_grafica)
 
     return titulo

@@ -4,10 +4,11 @@ from datetime import datetime
 
 def pegaParcelaLinha(linha):
     if linha != '':
-        capturado = linha[56:63].replace(" ", "")
-                
+        capturado = linha[116:134].replace(" ", "")
+        capturado = capturado.split('/')
+             
         try:
-            parcela = int(capturado)
+            parcela = capturado
         except:
             parcela = 0
     
@@ -42,6 +43,7 @@ def pegaSaldoLinha(linha):
     return float(valor)
 
 def pegaTxJuroLinha(linha):
+    valor_final = 0
     if ("TX JR NORMAL" in linha):
         capturado = linha[17:35].replace(" ", "")
         capturado = capturado.replace("%", "")
@@ -94,18 +96,6 @@ def existeTextoLinha(linha, texto):
     else:
         return False
     
-def pegaParcelaLinha(linha):
-    if linha != '':
-        capturado = linha[116:134].replace(" ", "")
-        capturado = capturado.split('/')
-             
-        try:
-            parcela = capturado
-        except:
-            parcela = 0
-    
-    return parcela
-
 def pegaCodigoLinha(linha):
     if linha != '':
         capturado = linha[12:17].replace(" ", "")
@@ -124,20 +114,6 @@ def pegaParcelaDetalheLinha(linha):
     
     return capturado
 
-def pegaTxJuroLinha(linha):
-    valor_final = 0
-    if ("TX JR NORMAL" in linha):
-        capturado = linha[17:35].replace(" ", "")
-        capturado = capturado.replace("%", "")
-        capturado = capturado.replace("a", "")
-        capturado = capturado.replace("m", "")
-        capturado = capturado.replace(".", "")
-        
-        valor       = float(capturado.replace(",","."))
-        valor_final = "{:.2f}".format(valor)        
-    
-    return valor_final
-
 def pegaAssociadoLinha(linha):
     capturado = ''
     if ("ASSOCIADO ....:" in linha):
@@ -150,6 +126,7 @@ def pegaValorFinanciadoLinha(linha):
         capturado = linha[116:134].replace(" ", "")
         capturado = capturado.replace(".", "")
         capturado = capturado.replace(",", ".")
+        capturado = capturado.rstrip('\n')
     
     return capturado
 
@@ -169,7 +146,7 @@ def pegaDataLiberacaoLinha(linha):
     
     return data_final
 
-def importaFichaGrafica(vCaminhoTxt):
+def importaFichaGrafica(vCaminhoTxt, informacoes=False):
     global valor_financiado        
         
     taxa_juro        = 0    
@@ -221,27 +198,30 @@ def importaFichaGrafica(vCaminhoTxt):
                 liberacao = pegaDataLiberacaoLinha(linha)
                             
             vlinha = vlinha + 1                               
-                
-    db     = f.conexao()
-    cursor = db.cursor()
 
-    sql_update = 'UPDATE ficha_grafica SET situacao = "INATIVO" WHERE titulo = %s AND situacao = "ATIVO"'
-    cursor.execute(sql_update, (titulo,))
-    cursor.fetchall()
-    db.commit()
+    if informacoes:
+        return 'Coop: Sicredi   Modalidade: ' + str(modalidade_amortizacao), 'Associado: ' + str(associado), 'Data de Liberação: ' + str(liberacao.strftime('%d/%m/%Y')), 'Número de Parcelas: ' + str(nro_parcelas), 'Parcela atual: ' + str(parcela), 'Título: ' + titulo, 'Taxa de Juros: ' + taxa_juro, 'Valor Financiado: ' + valor_financiado 
+    else:            
+        db     = f.conexao()
+        cursor = db.cursor()
 
-    vsql = 'INSERT INTO ficha_grafica(versao, associado, liberacao, nro_parcelas, parcela, situacao, titulo, tx_juro, valor_financiado, modalidade_amortizacao)\
-        VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
-    
-    parametros = ('sicredi', str(associado), liberacao, nro_parcelas, parcela, 'ATIVO', titulo, taxa_juro, valor_financiado, modalidade_amortizacao)    
+        sql_update = 'UPDATE ficha_grafica SET situacao = "INATIVO" WHERE titulo = %s AND situacao = "ATIVO"'
+        cursor.execute(sql_update, (titulo,))
+        cursor.fetchall()
+        db.commit()
 
-    cursor.execute(vsql, parametros)
-    resultado = cursor.fetchall()
-    db.commit()
+        vsql = 'INSERT INTO ficha_grafica(versao, associado, liberacao, nro_parcelas, parcela, situacao, titulo, tx_juro, valor_financiado, modalidade_amortizacao)\
+            VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+        
+        parametros = ('sicredi', str(associado), liberacao, nro_parcelas, parcela, 'ATIVO', titulo, taxa_juro, valor_financiado, modalidade_amortizacao)    
 
-    if cursor.rowcount > 0:        
-        print('Cabeçalho Ficha Gráfica Sicredi importado com sucesso!')
-        return cursor.lastrowid
+        cursor.execute(vsql, parametros)
+        resultado = cursor.fetchall()
+        db.commit()
+
+        if cursor.rowcount > 0:        
+            print('Cabeçalho Ficha Gráfica Sicredi importado com sucesso!')
+            return cursor.lastrowid
 
 def importaFichaGraficaDetalhe(vArquivoTxt, id_ficha_grafica):
     global valor_financiado        

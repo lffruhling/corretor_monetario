@@ -32,7 +32,7 @@ tipo             = ''
 valor_credito    = 0
 valor_debito     = 0
 
-def importar_cabecalho(vArquivoTxt):    
+def importar_cabecalho(vArquivoTxt, informacoes=False):    
     global titulo
     global modalidade_amortizacao
     with open(vArquivoTxt, 'r') as arquivo:        
@@ -58,6 +58,7 @@ def importar_cabecalho(vArquivoTxt):
                 if("Nome:" in linha):   
                     vnome     = linha.split(":")
                     associado = vnome[1][1:]
+                    associado = associado.rstrip('\n')
                     
                 if("Juros ao Mês:" in linha):   
                     vjuros  = linha.split(":")
@@ -100,7 +101,7 @@ def importar_cabecalho(vArquivoTxt):
                 if("Contrato Agrupado:" in linha):   
                     vcontrato  = linha.split(":")
                     vcontrato  = vcontrato[1].replace(" ", "")
-                    titulo     = vcontrato
+                    titulo     = vcontrato.rstrip('\n')
                 
                 ## Parcela Atual
                 #if("Nome:" in linha):   
@@ -112,26 +113,30 @@ def importar_cabecalho(vArquivoTxt):
             vlinha = vlinha + 1
 
     ## Executa a Inserção do cabeçalho no BD
-    db     = f.conexao()
-    cursor = db.cursor()
 
-    sql_update = 'UPDATE ficha_grafica SET situacao = "INATIVO" WHERE titulo = %s AND situacao = "ATIVO"'
-    cursor.execute(sql_update, (titulo,))
-    cursor.fetchall()
-    db.commit()
+    if informacoes:
+        return 'Coop.: Cresol   Modalidade: ' + str(modalidade_amortizacao), 'Associado: '+ str(associado), 'Data de Liberação: ' + str(data_liberacao.strftime('%d/%m/%Y')), 'Número de Parcelas: ' + str(parcelas), parcela, 'Título: ' + titulo, 'Taxa de Juros: ' + str(tx_juro), 'Multa: ' + str(multa), 'Valor Financiado: ' + str(valor_financiado)
+    else:
+        db     = f.conexao()
+        cursor = db.cursor()
 
-    vsql = 'INSERT INTO ficha_grafica(versao, associado, liberacao, nro_parcelas, parcela, situacao, titulo, tx_juro, multa, valor_financiado, modalidade_amortizacao)\
-        VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
-    
-    parametros = ('cresol', str(associado), data_liberacao, parcelas, parcela, 'ATIVO', titulo, tx_juro, multa, valor_financiado, modalidade_amortizacao)
+        sql_update = 'UPDATE ficha_grafica SET situacao = "INATIVO" WHERE titulo = %s AND situacao = "ATIVO"'
+        cursor.execute(sql_update, (titulo,))
+        cursor.fetchall()
+        db.commit()
 
-    cursor.execute(vsql, parametros)
-    resultado = cursor.fetchall()
-    db.commit()
+        vsql = 'INSERT INTO ficha_grafica(versao, associado, liberacao, nro_parcelas, parcela, situacao, titulo, tx_juro, multa, valor_financiado, modalidade_amortizacao)\
+            VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+        
+        parametros = ('cresol', str(associado), data_liberacao, parcelas, parcela, 'ATIVO', titulo, tx_juro, multa, valor_financiado, modalidade_amortizacao)
 
-    if cursor.rowcount > 0:
-        print('Cabeçalho importado com sucesso!')
-        return cursor.lastrowid
+        cursor.execute(vsql, parametros)
+        resultado = cursor.fetchall()
+        db.commit()
+
+        if cursor.rowcount > 0:
+            print('Cabeçalho importado com sucesso!')
+            return cursor.lastrowid
 
 def importar_detalhes(vArquivoTxt, titulo, id_ficha_grafica):    
     global vLinhaLancamento        
@@ -226,7 +231,7 @@ def importar_detalhes(vArquivoTxt, titulo, id_ficha_grafica):
 
                 if str(tipo) == 'C':
                     valor_credito = valor
-                    valor_debito  = 0                     
+                    valor_debito  = 0                    
 
                 ## Realiza a inserção no BD
                 vsql = 'INSERT INTO ficha_detalhe(id_ficha_grafica, titulo, data, cod, historico, parcela, situacao, valor_credito, valor_debito, valor_saldo)\

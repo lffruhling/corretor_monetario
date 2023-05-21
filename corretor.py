@@ -21,6 +21,7 @@ import winreg as wrg
 vPath    = 'C:/Temp/Fichas_Graficas'
 versao   = ''
 lancamentos = []
+tela = None
 
 def alimentaDetalhesRelatorio(lista, data, descricao, valor, correcao, corrigido, juros, total):
     lista.append({"data":data, "descricao":descricao, "valor":valor,"correcao":correcao,"corrigido":corrigido,"juros":juros,"total":total})
@@ -116,48 +117,163 @@ def licenca():
             break
         if eventos == 'Fechar':
             tela_ativar.close()            
-        
+    
 def main():            
     nome_arquivo       = ''
     tipo_arquivo       = ''
     versao             = '' 
+    informacoes        = '' 
+    arquivo_importar   = ''
+    remove_arquivo     = False
+    global tela
 
     if not os.path.isdir(vPath): # vemos de este diretorio ja existe        
         os.mkdir(vPath)
-        os.mkdir(vPath + '/Processados')   
+        os.mkdir(vPath + '/Processados')  
 
+    
     sg.theme('Reddit')
+    lista_arquivo = []
+    lista_arquivo.append(sg.Input(key='-INPUT-', enable_events=True))
+    lista_arquivo.append(sg.FileBrowse(button_text='Procurar', enable_events=True, key='arquivo'))
+    frame_arquivo = sg.Frame('Selecione a Ficha Gráfica', [lista_arquivo], expand_x=True)
+    
+    lista_indices = []
+    lista_indices.append(sg.Checkbox(text='IGPM', key='ed_igpm'))
+    lista_indices.append(sg.Checkbox(text='IPCA', key='ed_ipca'))
+    lista_indices.append(sg.Checkbox(text='CDI', key='ed_cdi'))
+    lista_indices.append(sg.Checkbox(text='INPC', key='ed_inpc'))
+    lista_indices.append(sg.Checkbox(text='TR', key='ed_tr'))
+    frame_indices = sg.Frame('Índices de Correção', [lista_indices], expand_x=True)
 
-    layout = [    
-                [sg.Text(text='                         Corretor Monetário', text_color="Silver", font=("Arial",15))],      
-                [sg.Text(text='___________________________________________________', text_color="Silver", font=("Arial",15))],      
-                [sg.Text(text='Selecione a Ficha Gráfica', key='caminho_arquivo'), sg.FileBrowse(button_text='Procurar', key='arquivo')],    
-                [sg.Text(text='______________________________________________________________________________', text_color="Silver", font=("Arial",10))],      
-                [sg.Checkbox(text='IGPM'), sg.Checkbox(text='IPCA'), sg.Checkbox(text='CDI')],    
+    lista_informacoes = []
+    lista_informacoes.append(sg.Multiline(default_text=informacoes, expand_x=True, size=(None, 5), key="ed_informacoes", enable_events=True, auto_refresh=True) )    
+    frame_informacoes = sg.Frame('Informações da Ficha Gráfica', [lista_informacoes], expand_x=True, visible=False, key='Info')
+    
+    lista_incidencia = []
+    lista_incidencia.append('Sobre o Valor Corrigido+Juros Principais')
+    lista_incidencia.append('Sobre o Valor Corrigido')
+    lista_incidencia.append('Sobre o Valor Original+Juros Principais')
+    lista_incidencia.append('Sobre o Valor Original')    
+    
+    lista_multa = []
+    lista_multa.append(sg.Text(text="Percentual:", font=("Arial",10, "bold")))    
+    lista_multa.append(sg.Input(key="ed_multa_perc", size=(10,1)))    
+    lista_multa.append(sg.Text(text="Valor Fixo:", font=("Arial",10, "bold")))    
+    lista_multa.append(sg.Input(key="ed_multa_valor", size=(20,1)))    
+    lista_multa.append(sg.Text(text="Incidência:", font=("Arial",10, "bold")))    
+    lista_multa.append(sg.Combo(lista_incidencia, key="ed_multa_incidencia"))    
+    frame_multa = sg.Frame('Multa', [lista_multa], expand_x=True, key="frame_multa")
+
+    lista_honorarios = []
+    lista_honorarios.append(sg.Text(text="Percentual:", font=("Arial",10, "bold")))    
+    lista_honorarios.append(sg.Input(key="ed_honorarios_perc", size=(10,1)))    
+    lista_honorarios.append(sg.Text(text="Valor Fixo:", font=("Arial",10, "bold")))    
+    lista_honorarios.append(sg.Input(key="ed_honorarios_valor", size=(20,1)) )    
+    frame_honorarios = sg.Frame('Honorários', [lista_honorarios], expand_x=True, key="frame_honorarios")
+
+    lista_outros = []
+    lista_outros.append(sg.Text(text="Valor R$:", font=("Arial",10, "bold")))    
+    lista_outros.append(sg.Input(key="ed_outros_valor", size=(20,1), default_text='0,00', enable_events=True))        
+    frame_outros = sg.Frame('Outros Valores', [lista_outros], expand_x=True)    
+    
+    principal = [    
+                [sg.Text(text='Corretor Monetário', text_color="Black", font=("Arial",22, "bold"), expand_x=True, justification='center')],                      
+                [frame_arquivo],      
+                [frame_informacoes],                                              
+                [frame_indices],    
+                [frame_multa],                
+                [frame_honorarios],
+                [frame_outros],                
                 [sg.Text(text='Aguardando Operação', key='ed_situacao', text_color="green")],
-                [sg.ProgressBar(100, orientation='h', size=(100, 20), key='progressbar', visible=False)],
-                [sg.Button('Calcular'), sg.Button('Fechar')]      
+                [sg.ProgressBar(100, orientation='h', size=(50, 4), key='progressbar', visible=False, expand_x=True)],
+                [sg.Button('Calcular'), sg.Button('Fechar'), sg.Button('Informações')]      
              ]
+    
+    fichas_importadas = []
+    importadas = [    
+                    [sg.Text(text='Fichas Importadas', text_color="black", font=("Arial",12), expand_x=True, justification='center')],
+                    [sg.Table(values=fichas_importadas, headings=['Data', 'Título', 'Associado', 'Valor'], auto_size_columns=True, display_row_numbers=False, justification='center', key='-TABLE-', selected_row_colors='red on yellow', enable_events=True, expand_x=True, expand_y=True,enable_click_events=True)],
+                    [sg.Button("Atualizar", key='btn_atualizar_importadas')]
+                 ]    
+
+    parametros = [    
+                    [sg.Text(text='Parâmetros', text_color="black", font=("Arial",12), expand_x=True, justification='center')],                                        
+                 ]
+
+    tabgrp = [
+                [sg.TabGroup
+                    (
+                        [
+                            [sg.Tab('Principal', principal, title_color='Red',border_width =10), sg.Tab('Importadas', importadas, key='aba_importadas'), sg.Tab('Parâmetros', parametros)]                            
+                        ]
+                    )
+                ]
+             ]  
     
 
     busca_licena = verificaLicenca() 
     if ((busca_licena == None) or (busca_licena != 'THMPV-77D6F-94376-8HGKG-VRDRQ')):
         licenca()
 
+    def atualizaInfo():
+        global informacoes
+        informacoes = ''
+        while True:            
+            tela['Info'].update(visible=True)
+
+            eventos, valores = tela.read(timeout=0.1)
+            caminho = valores['arquivo']
+
+            arquivo_selecionado = caminho.split('/')
+            nome_arquivo  = arquivo_selecionado[-1][:-4]
+            formato       = arquivo_selecionado[-1].split('.')
+            tipo_arquivo  = formato[-1]
+            
+            if tipo_arquivo == 'pdf':                  
+                arquivo_tmp = converterPDF(caminho)
+                print(str(arquivo_tmp))                              
+            else:
+                arquivo_tmp = caminho
+
+            if identificaVersao(arquivo_tmp) == 'cresol':
+                dados = cresol.importar_cabecalho(arquivo_tmp, True)                
+            else:
+                dados = sicredi.importaFichaGrafica(arquivo_tmp, True)                
+
+            for l in dados:
+                informacoes = informacoes + ' ' + str(l) + '\n'
+
+            tela['ed_informacoes'].update(informacoes)                
+            break
+
     busca_licena = verificaLicenca() 
-    if (busca_licena == 'THMPV-77D6F-94376-8HGKG-VRDRQ'):
-        tela = sg.Window('Corretor', layout, size=(500,270))
+    if (busca_licena == 'THMPV-77D6F-94376-8HGKG-VRDRQ'):                
+        tela = sg.Window('Corretor', tabgrp)
         progress_bar = tela['progressbar']
 
-
-        while True:                    
+        while True:                
             eventos, valores = tela.read(timeout=0.1)
+            
+            if eventos is None or eventos == "Fechar":
+                break
+            
             tela['ed_situacao'].update("Aguardando Operação")
             tela['ed_situacao'].update(text_color="Green")
             progress_bar.update(visible=False)
             progress_bar.UpdateBar(0)
             
+
+            if eventos == '-INPUT-':
+                atualizaInfo()                           
+
+            if eventos == 'btn_atualizar_importadas':
+                fichas_importadas = []                
+
+            
             if eventos == 'Calcular':
+                ## Aqui colocar validações dos campos
+
                 progress_bar.update(visible=True)
                 progress_bar.UpdateBar(50)
 

@@ -21,6 +21,7 @@ import winreg as wrg
 vPath    = 'C:/Temp/Fichas_Graficas'
 versao   = ''
 lancamentos = []
+fichas_importadas = []
 tela = None
 
 def alimentaDetalhesRelatorio(lista, data, descricao, valor, correcao, corrigido, juros, total):
@@ -124,8 +125,9 @@ def main():
     versao             = '' 
     informacoes        = '' 
     arquivo_importar   = ''
-    remove_arquivo     = False
+    remove_arquivo     = False    
     global tela
+    global fichas_importadas
 
     if not os.path.isdir(vPath): # vemos de este diretorio ja existe        
         os.mkdir(vPath)
@@ -190,10 +192,10 @@ def main():
                 [sg.Button('Calcular'), sg.Button('Fechar'), sg.Button('Informações')]      
              ]
     
-    fichas_importadas = []
+    #fichas_importadas = []
     importadas = [    
                     [sg.Text(text='Fichas Importadas', text_color="black", font=("Arial",12), expand_x=True, justification='center')],
-                    [sg.Table(values=fichas_importadas, headings=['Data', 'Título', 'Associado', 'Valor'], auto_size_columns=True, display_row_numbers=False, justification='center', key='-TABLE-', selected_row_colors='red on yellow', enable_events=True, expand_x=True, expand_y=True,enable_click_events=True)],
+                    [sg.Table(values=fichas_importadas, headings=['ID', 'Título', 'Versão', 'Associado', 'N° Parcelas', 'Valor Financiado', 'Taxa Juros'], auto_size_columns=True, display_row_numbers=False, justification='center', key='-TABLE-', selected_row_colors='red on yellow', enable_events=True, expand_x=True, expand_y=True,enable_click_events=True)],
                     [sg.Button("Atualizar", key='btn_atualizar_importadas')]
                  ]    
 
@@ -267,8 +269,23 @@ def main():
             if eventos == '-INPUT-':
                 atualizaInfo()                           
 
-            if eventos == 'btn_atualizar_importadas':
-                fichas_importadas = []                
+            if eventos == 'btn_atualizar_importadas':                                                 
+                db     = f.conexao()
+                cursor = db.cursor()
+                
+                sql_consulta = 'SELECT f.id,f.titulo,f.versao,f.associado,f.nro_parcelas,f.valor_financiado,f.tx_juro FROM ficha_grafica as f WHERE f.situacao="ATIVO" order by id DESC'
+                
+                cursor.execute(sql_consulta)
+                dados = cursor.fetchall()
+                
+                fichas_importadas = []
+                for ficha in dados:                    
+                    print(ficha[5])
+                    fichas_importadas.append(ficha)                    
+                    
+                tela['-TABLE-'].update(values = fichas_importadas)    
+                
+                cursor.close()
 
             
             if eventos == 'Calcular':

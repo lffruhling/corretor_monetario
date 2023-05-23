@@ -132,7 +132,6 @@ def main():
     if not os.path.isdir(vPath): # vemos de este diretorio ja existe        
         os.mkdir(vPath)
         os.mkdir(vPath + '/Processados')  
-
     
     sg.theme('Reddit')
     lista_arquivo = []
@@ -150,28 +149,22 @@ def main():
 
     lista_informacoes = []
     lista_informacoes.append(sg.Multiline(default_text=informacoes, expand_x=True, size=(None, 5), key="ed_informacoes", enable_events=True, auto_refresh=True) )    
-    frame_informacoes = sg.Frame('Informações da Ficha Gráfica', [lista_informacoes], expand_x=True, visible=False, key='Info')
-    
-    lista_incidencia = []
-    lista_incidencia.append('Sobre o Valor Corrigido+Juros Principais')
-    lista_incidencia.append('Sobre o Valor Corrigido')
-    lista_incidencia.append('Sobre o Valor Original+Juros Principais')
-    lista_incidencia.append('Sobre o Valor Original')    
+    frame_informacoes = sg.Frame('Informações da Ficha Gráfica', [lista_informacoes], expand_x=True, visible=False, key='Info')      
     
     lista_multa = []
     lista_multa.append(sg.Text(text="Percentual:", font=("Arial",10, "bold")))    
-    lista_multa.append(sg.Input(key="ed_multa_perc", size=(10,1)))    
+    lista_multa.append(sg.Input(key="ed_multa_perc", enable_events=True, size=(10,1)))    
     lista_multa.append(sg.Text(text="Valor Fixo:", font=("Arial",10, "bold")))    
-    lista_multa.append(sg.Input(key="ed_multa_valor", size=(20,1)))    
+    lista_multa.append(sg.Input(key="ed_multa_valor", enable_events=True,size=(20,1)))    
     lista_multa.append(sg.Text(text="Incidência:", font=("Arial",10, "bold")))    
     lista_multa.append(sg.Combo(['Sobre o Valor Corrigido+Juros Principais','Sobre o Valor Corrigido','Sobre o Valor Original+Juros Principais','Sobre o Valor Original'], key="ed_multa_incidencia", enable_events=True))    
     frame_multa = sg.Frame('Multa', [lista_multa], expand_x=True, key="frame_multa")
 
     lista_honorarios = []
     lista_honorarios.append(sg.Text(text="Percentual:", font=("Arial",10, "bold")))    
-    lista_honorarios.append(sg.Input(key="ed_honorarios_perc", size=(10,1)))    
+    lista_honorarios.append(sg.Input(key="ed_honorarios_perc", enable_events=True, size=(10,1)))    
     lista_honorarios.append(sg.Text(text="Valor Fixo:", font=("Arial",10, "bold")))    
-    lista_honorarios.append(sg.Input(key="ed_honorarios_valor", size=(20,1)) )    
+    lista_honorarios.append(sg.Input(key="ed_honorarios_valor", enable_events=True, size=(20,1)) )    
     frame_honorarios = sg.Frame('Honorários', [lista_honorarios], expand_x=True, key="frame_honorarios")
 
     lista_outros = []
@@ -179,8 +172,38 @@ def main():
     lista_outros.append(sg.Input(key="ed_outros_valor", size=(20,1), default_text='0,00', enable_events=True))        
     frame_outros = sg.Frame('Outros Valores', [lista_outros], expand_x=True)    
     
+    ## Campos para defini~çao dos parâmetros padrão (Aba Parâmetros)    
+    lista_indices_parametros = []
+    lista_indices_parametros.append(sg.Checkbox(text='IGPM', key='ed_igpm_param'))
+    lista_indices_parametros.append(sg.Checkbox(text='IPCA', key='ed_igpm_param'))
+    lista_indices_parametros.append(sg.Checkbox(text='CDI', key='ed_igpm_param'))
+    lista_indices_parametros.append(sg.Checkbox(text='INPC', key='ed_igpm_param'))
+    lista_indices_parametros.append(sg.Checkbox(text='TR', key='ed_igpm_param'))
+    frame_indices_parametros = sg.Frame('Índices de Correção', [lista_indices_parametros], expand_x=True)
+    
+    lista_multa_parametros = []
+    lista_multa_parametros.append(sg.Text(text="Percentual:", font=("Arial",10, "bold")))    
+    lista_multa_parametros.append(sg.Input(key="ed_multa_perc_param", enable_events=True, size=(10,1)))    
+    lista_multa_parametros.append(sg.Text(text="Valor Fixo:", font=("Arial",10, "bold")))    
+    lista_multa_parametros.append(sg.Input(key="ed_multa_valor_param", enable_events=True,size=(20,1)))    
+    lista_multa_parametros.append(sg.Text(text="Incidência:", font=("Arial",10, "bold")))    
+    lista_multa_parametros.append(sg.Combo(['Sobre o Valor Corrigido+Juros Principais','Sobre o Valor Corrigido','Sobre o Valor Original+Juros Principais','Sobre o Valor Original'], key="ed_multa_incidencia_param", enable_events=True))    
+    frame_multa_parametros = sg.Frame('Multa', [lista_multa_parametros], expand_x=True, key="frame_multa_param")
+
+    lista_honorarios_parametros = []
+    lista_honorarios_parametros.append(sg.Text(text="Percentual:", font=("Arial",10, "bold")))    
+    lista_honorarios_parametros.append(sg.Input(key="ed_honorarios_perc_param", enable_events=True, size=(10,1)))    
+    lista_honorarios_parametros.append(sg.Text(text="Valor Fixo:", font=("Arial",10, "bold")))    
+    lista_honorarios_parametros.append(sg.Input(key="ed_honorarios_valor_param", enable_events=True, size=(20,1)) )    
+    frame_honorarios_parametros = sg.Frame('Honorários', [lista_honorarios_parametros], expand_x=True, key="frame_honorarios_param")
+
+    lista_outros_parametros = []
+    lista_outros_parametros.append(sg.Text(text="Valor R$:", font=("Arial",10, "bold")))    
+    lista_outros_parametros.append(sg.Input(key="ed_outros_valor_param", size=(20,1), default_text='0,00', enable_events=True))        
+    frame_outros_parametros = sg.Frame('Outros Valores', [lista_outros_parametros], expand_x=True)     
+    
     principal = [    
-                [sg.Text(text='Corretor Monetário', text_color="Black", font=("Arial",22, "bold"), expand_x=True, justification='center')],                      
+                [sg.Text(text='Corretor Monetário', text_color="Black", font=("Arial",22, "bold"), expand_x=True, justification='center')],                                      
                 [frame_arquivo],      
                 [frame_informacoes],                                              
                 [frame_indices],    
@@ -189,18 +212,31 @@ def main():
                 [frame_outros],                
                 [sg.Text(text='Aguardando Operação', key='ed_situacao', text_color="green")],
                 [sg.ProgressBar(100, orientation='h', size=(50, 4), key='progressbar', visible=False, expand_x=True)],
-                [sg.Button('Calcular'), sg.Button('Fechar'), sg.Button('Informações')]      
+                [sg.Button('Calcular'), sg.Button('Fechar'), sg.Text('Versão: 1.0.0', expand_x=True, justification='right', font=("Verdana",10))]      
              ]
     
-    #fichas_importadas = []
+    lista_filtros = []
+    lista_filtros.append(sg.Text("Título"))
+    lista_filtros.append(sg.Input(key="ed_filtro_titulo", size=(20,1), enable_events=True))
+    lista_filtros.append(sg.Text("Associado"))
+    lista_filtros.append(sg.Input(key="ed_filtro_associado", size=(30,1), enable_events=True))
+    lista_filtros.append(sg.Button("Filtrar", key='btn_atualizar_importadas'))
+    frame_filtros = sg.Frame('Filtros', [lista_filtros], expand_x=True)    
     importadas = [    
                     [sg.Text(text='Fichas Importadas', text_color="black", font=("Arial",12), expand_x=True, justification='center')],
-                    [sg.Table(values=fichas_importadas, headings=['ID', 'Título', 'Versão', 'Associado', 'N° Parcelas', 'Valor Financiado', 'Taxa Juros'], auto_size_columns=True, display_row_numbers=False, justification='center', key='-TABLE-', selected_row_colors='red on yellow', enable_events=True, expand_x=True, expand_y=True,enable_click_events=True)],
-                    [sg.Button("Atualizar", key='btn_atualizar_importadas')]
+                    [frame_filtros],
+                    [sg.Table(values=fichas_importadas, headings=['ID', 'Título', 'Versão', 'Associado', 'N° Parcelas', 'Valor Financiado', 'Taxa Juros'], auto_size_columns=True, display_row_numbers=False, justification='center', key='-TABLE-', selected_row_colors='red on yellow', enable_events=True, expand_x=True, expand_y=True,enable_click_events=True)]                    
                  ]    
 
     parametros = [    
                     [sg.Text(text='Parâmetros', text_color="black", font=("Arial",12), expand_x=True, justification='center')],                                        
+                    [sg.Text(text='Parâmetros Padrão do Sistema', text_color="black", font=("Arial",9), expand_x=True, justification='left')],
+                    [sg.Text(text='Atenção: Opções definidas aqui serão carregadas como padrão para todos ao inicializar uma nova importação.', text_color="red", font=("Verdana",7), expand_x=True, justification='left')],
+                    [frame_indices_parametros],
+                    [frame_multa_parametros],
+                    [frame_honorarios_parametros],
+                    [frame_outros_parametros],
+                    [sg.Button('Salvar Parâmetros', key='btn_salvar_parametros_gerais'), sg.Button('Cancelar')]
                  ]
 
     tabgrp = [
@@ -248,7 +284,7 @@ def main():
 
             tela['ed_informacoes'].update(informacoes)                
             break
-
+    
     busca_licena = verificaLicenca() 
     if (busca_licena == 'THMPV-77D6F-94376-8HGKG-VRDRQ'):                
         tela = sg.Window('Corretor', tabgrp)
@@ -265,15 +301,56 @@ def main():
             progress_bar.update(visible=False)
             progress_bar.UpdateBar(0)
             
-
             if eventos == '-INPUT-':
-                atualizaInfo()                           
+                atualizaInfo()     
+                
+            ## Tratamento para campos de valor não aceitar letras
+            if eventos == 'ed_multa_perc': 
+                if valores['ed_multa_perc'] != '':          
+                    if valores['ed_multa_perc'][-1] not in ('0123456789,.'):                                                
+                        tela['ed_multa_perc'].update(valores['ed_multa_perc'][:-1])
+            
+            ## Tratamento para campos de valor não aceitar letras
+            if eventos == 'ed_multa_valor': 
+                if valores['ed_multa_valor'] != '':          
+                    if valores['ed_multa_valor'][-1] not in ('0123456789,.'):                                                
+                        tela['ed_multa_valor'].update(valores['ed_multa_valor'][:-1]) 
+                        
+            ## Tratamento para campos de valor não aceitar letras
+            if eventos == 'ed_honorarios_perc': 
+                if valores['ed_honorarios_perc'] != '':          
+                    if valores['ed_honorarios_perc'][-1] not in ('0123456789,.'):                                                
+                        tela['ed_honorarios_perc'].update(valores['ed_honorarios_perc'][:-1])
+
+            ## Tratamento para campos de valor não aceitar letras            
+            if eventos == 'ed_honorarios_valor': 
+                if valores['ed_honorarios_valor'] != '':          
+                    if valores['ed_honorarios_valor'][-1] not in ('0123456789,.'):                                                
+                        tela['ed_honorarios_valor'].update(valores['ed_honorarios_valor'][:-1])
+                        
+            ## Tratamento para campos de valor não aceitar letras
+            if eventos == 'ed_outros_valor': 
+                if valores['ed_outros_valor'] != '':          
+                    if valores['ed_outros_valor'][-1] not in ('0123456789,.'):                                                
+                        tela['ed_outros_valor'].update(valores['ed_outros_valor'][:-1])
 
             if eventos == 'btn_atualizar_importadas':                                                 
                 db     = f.conexao()
                 cursor = db.cursor()
                 
-                sql_consulta = 'SELECT f.id,f.titulo,f.versao,f.associado,f.nro_parcelas,f.valor_financiado,f.tx_juro FROM ficha_grafica as f WHERE f.situacao="ATIVO" order by id DESC'
+                if valores['ed_filtro_titulo'] != '':
+                    v_titulo_filtro = ' AND titulo like "%' + valores['ed_filtro_titulo'] + '%" '
+                else:
+                    v_titulo_filtro = ''
+                    
+                if valores['ed_filtro_associado'] != '':
+                    v_associado_filtro = ' AND associado like "%' + valores['ed_filtro_associado'] + '%" '
+                else:
+                    v_associado_filtro = ''  
+                
+                vfiltros = v_titulo_filtro + ' ' + v_associado_filtro
+                
+                sql_consulta = 'SELECT f.id,f.titulo,f.versao,f.associado,f.nro_parcelas,f.valor_financiado,f.tx_juro FROM ficha_grafica as f WHERE f.situacao="ATIVO" ' + vfiltros + ' order by id DESC'
                 
                 cursor.execute(sql_consulta)
                 dados = cursor.fetchall()

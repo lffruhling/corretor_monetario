@@ -22,6 +22,24 @@ def salvaParametrosImportacao(id_ficha, igpm, ipca, cdi, inpc, tr, multa_perc, m
         print('Parâmetros de importação salvos com sucesso!')
 
     cursor.close()
+    
+def salvarParametrosGerais(igpm, ipca, cdi, inpc, tr, multa_perc, multa_valor_fixo, multa_incidencia, honorarios_perc, honorarios_valor_fixo, outros_valor):
+    db     = conexao()
+    cursor = db.cursor()
+    
+    vsql = 'INSERT INTO ficha_parametros(igpm, ipca, cdi, inpc, tr, multa_perc, multa_valor_fixo, multa_incidencia, honorarios_perc, honorarios_valor_fixo, outros_valor)\
+            VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+        
+    parametros = (igpm, ipca, cdi, inpc, tr, multa_perc, multa_valor_fixo, multa_incidencia, honorarios_perc, honorarios_valor_fixo, outros_valor)
+    
+    cursor.execute(vsql, parametros)
+    resultado = cursor.fetchall()
+    db.commit()
+
+    if cursor.rowcount > 0:        
+        print('Parâmetros gerais salvos com sucesso!')
+
+    cursor.close()
 
 def carregaIndice(tabela, ano, mes):
     p_mes = ''

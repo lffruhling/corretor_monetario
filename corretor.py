@@ -164,7 +164,7 @@ def main():
     lista_multa.append(sg.Text(text="Valor Fixo:", font=("Arial",10, "bold")))    
     lista_multa.append(sg.Input(key="ed_multa_valor", size=(20,1)))    
     lista_multa.append(sg.Text(text="Incidência:", font=("Arial",10, "bold")))    
-    lista_multa.append(sg.Combo(lista_incidencia, key="ed_multa_incidencia"))    
+    lista_multa.append(sg.Combo(['Sobre o Valor Corrigido+Juros Principais','Sobre o Valor Corrigido','Sobre o Valor Original+Juros Principais','Sobre o Valor Original'], key="ed_multa_incidencia", enable_events=True))    
     frame_multa = sg.Frame('Multa', [lista_multa], expand_x=True, key="frame_multa")
 
     lista_honorarios = []
@@ -279,8 +279,7 @@ def main():
                 dados = cursor.fetchall()
                 
                 fichas_importadas = []
-                for ficha in dados:                    
-                    print(ficha[5])
+                for ficha in dados:                                        
                     fichas_importadas.append(ficha)                    
                     
                 tela['-TABLE-'].update(values = fichas_importadas)    
@@ -291,12 +290,38 @@ def main():
             if eventos == 'Calcular':
                 ## Aqui colocar validações dos campos
 
+                vincidencia = valores['ed_multa_incidencia']
 
+                ## Trata campos dos parâmetros
                 if valores['ed_multa_perc'] == '':
                     vmulta_perc = 0
                 else:
-                    print(parametros['multa_perc'])                                    
+                    vmulta_perc = valores['ed_multa_perc'].replace(',','.')
+                    vmulta_perc = float(vmulta_perc)
+
+                if valores['ed_multa_valor'] == '':
+                    vmulta_valor = 0
+                else:
+                    vmulta_valor = valores['ed_multa_valor'].replace(',','.')
+                    vmulta_valor = float(vmulta_valor)
+
+                if valores['ed_honorarios_perc'] == '':
+                    vhonorarios_perc = 0
+                else:
+                    vhonorarios_perc = valores['ed_honorarios_perc'].replace(',','.')
+                    vhonorarios_perc = float(vhonorarios_perc)
+
+                if valores['ed_honorarios_valor'] == '':
+                    vhonorarios_valor = 0
+                else:
+                    vhonorarios_valor = valores['ed_honorarios_valor'].replace(',','.')
+                    vhonorarios_valor = float(vhonorarios_valor)
                 
+                if valores['ed_outros_valor'] == '':
+                    voutros_valor = 0
+                else:
+                    voutros_valor = valores['ed_outros_valor'].replace(',','.')
+                    voutros_valor = float(voutros_valor)
                 
                 parametros = {
                     'igpm'             : valores['ed_igpm'],
@@ -304,16 +329,14 @@ def main():
                     'cdi'              : valores['ed_cdi'],
                     'inpc'             : valores['ed_inpc'],
                     'tr'               : valores['ed_tr'],
-                    'multa_perc'       : valores['ed_multa_perc'],
-                    'multa_valor'      : valores['ed_multa_valor'],
-                    'multa_incidencia' : valores['ed_multa_incidencia'],
-                    'honorarios_perc'  : valores['ed_honorarios_perc'],
-                    'honorarios_valor' : valores['ed_honorarios_valor'],
-                    'outros_valor'     : valores['ed_outros_valor']
+                    'multa_perc'       : vmulta_perc,
+                    'multa_valor'      : vmulta_valor,
+                    'multa_incidencia' : vincidencia,
+                    'honorarios_perc'  : vhonorarios_perc,
+                    'honorarios_valor' : vhonorarios_valor,
+                    'outros_valor'     : voutros_valor
                 }    
-
                 
-
                 progress_bar.update(visible=True)
                 progress_bar.UpdateBar(50)
 
@@ -352,11 +375,11 @@ def main():
                         progress_bar.UpdateBar(50)
                         if identificaVersao(arquivo_importar) == 'sicredi':
                             versao = 'sicredi'
-                            titulo = sicredi.importarSicredi(arquivo_importar)    
+                            titulo = sicredi.importarSicredi(arquivo_importar, parametros)    
                             progress_bar.UpdateBar(74)                
                         else:
                             versao = 'cresol'
-                            titulo = cresol.importarCresol(arquivo_importar)
+                            titulo = cresol.importarCresol(arquivo_importar, parametros)
                             progress_bar.UpdateBar(74)
 
                         db     = f.conexao()

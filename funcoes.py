@@ -1,4 +1,3 @@
-import json
 import MySQLdb
 import constantes as c
 
@@ -20,7 +19,7 @@ def salvaParametrosImportacao(id_ficha, igpm, ipca, cdi, inpc, tr, multa_perc, m
     db.commit()
 
     if cursor.rowcount > 0:        
-        print('Paâmetros de importação salvos com sucesso!')
+        print('Parâmetros de importação salvos com sucesso!')
 
     cursor.close()
 

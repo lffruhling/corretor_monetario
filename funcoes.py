@@ -3,8 +3,8 @@ import MySQLdb
 import constantes as c
 
 def conexao():
-    return MySQLdb.connect(host="10.4.21.24", user='root', passwd='*Sicred1',db='db_teste')
-    #return MySQLdb.connect(host="mysql.edersondallabrida.com", user=c.USUARIO_DB1, passwd=c.SENHA_DB1,db=c.NOME_DB1)
+    #return MySQLdb.connect(host="10.4.21.24", user='root', passwd='*Sicred1',db='db_teste')
+    return MySQLdb.connect(host="mysql.edersondallabrida.com", user=c.USUARIO_DB1, passwd=c.SENHA_DB1,db=c.NOME_DB1)
     
 def salvaParametrosImportacao(id_ficha, igpm, ipca, cdi, inpc, tr, multa_perc, multa_valor_fixo, multa_incidencia, honorarios_perc, honorarios_valor_fixo, outros_valor):
     db     = conexao()
@@ -18,6 +18,11 @@ def salvaParametrosImportacao(id_ficha, igpm, ipca, cdi, inpc, tr, multa_perc, m
     cursor.execute(vsql, parametros)
     resultado = cursor.fetchall()
     db.commit()
+
+    if cursor.rowcount > 0:        
+        print('Paâmetros de importação salvos com sucesso!')
+
+    cursor.close()
 
 def carregaIndice(tabela, ano, mes):
     p_mes = ''

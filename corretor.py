@@ -291,6 +291,29 @@ def main():
             if eventos == 'Calcular':
                 ## Aqui colocar validações dos campos
 
+
+                if valores['ed_multa_perc'] == '':
+                    vmulta_perc = 0
+                else:
+                    print(parametros['multa_perc'])                                    
+                
+                
+                parametros = {
+                    'igpm'             : valores['ed_igpm'],
+                    'ipca'             : valores['ed_ipca'],
+                    'cdi'              : valores['ed_cdi'],
+                    'inpc'             : valores['ed_inpc'],
+                    'tr'               : valores['ed_tr'],
+                    'multa_perc'       : valores['ed_multa_perc'],
+                    'multa_valor'      : valores['ed_multa_valor'],
+                    'multa_incidencia' : valores['ed_multa_incidencia'],
+                    'honorarios_perc'  : valores['ed_honorarios_perc'],
+                    'honorarios_valor' : valores['ed_honorarios_valor'],
+                    'outros_valor'     : valores['ed_outros_valor']
+                }    
+
+                
+
                 progress_bar.update(visible=True)
                 progress_bar.UpdateBar(50)
 

@@ -1,7 +1,6 @@
 import funcoes as f
-import datetime
-from datetime import datetime
-
+from datetime import datetime, date, timedelta
+import re
 def pegaParcelaLinha(linha):
     if linha != '':
         capturado = linha[116:134].replace(" ", "")
@@ -80,15 +79,15 @@ def pegaCreditoLinha(linha):
     return float(valor)
 
 def pegaDataVencimentoParcela(linha, parcela):
+    # Alterar aqui para pegar a parcal e data
+    data_capturada = None
     if linha != '':
-        if parcela <= 99:
-            posicao_inicial = linha.find('0' + str(parcela) + ')') + 5
-            posicao_final   = posicao_inicial +  12
-            texto_capturado = linha[posicao_inicial:posicao_final].replace(" ","")
-
-            data_capturada = texto_capturado
-    
-    return data_capturada
+        if (f"0{parcela + 1})" in linha):
+            match=(re.search(f"0{parcela + 1}", linha))
+            data_capturada = linha[match.end()+1:(match.end() + 12)].replace(" ", "")
+            dataPrejuizo = datetime.strptime(data_capturada, '%d/%m/%Y')
+            data_capturada = dataPrejuizo + timedelta(days=1)
+            return data_capturada
 
 def existeTextoLinha(linha, texto):    
     if (texto in linha):
@@ -157,6 +156,7 @@ def importaFichaGrafica(vCaminhoTxt, informacoes=False):
     liberacao        = datetime.now()    
     titulo           = ''
     modalidade_amortizacao = ''
+    dataEntradaPrejuizo = None
 
     with open(vCaminhoTxt, 'r') as reader:
         
@@ -196,8 +196,13 @@ def importaFichaGrafica(vCaminhoTxt, informacoes=False):
                 
             if("VALOR FINANCIADO .....:" in linha):
                 liberacao = pegaDataLiberacaoLinha(linha)
-                            
-            vlinha = vlinha + 1                               
+
+            if dataEntradaPrejuizo is None:
+                dataEntradaPrejuizo = pegaDataVencimentoParcela(linha, parcela)
+
+            vlinha = vlinha + 1
+
+        print(dataEntradaPrejuizo) #Salvar a data de entrada no prejuizo na base
 
     if informacoes:
         return 'Coop: Sicredi   Modalidade: ' + str(modalidade_amortizacao), 'Associado: ' + str(associado), 'Data de Liberação: ' + str(liberacao.strftime('%d/%m/%Y')), 'Número de Parcelas: ' + str(nro_parcelas), 'Parcela atual: ' + str(parcela), 'Título: ' + titulo, 'Taxa de Juros: ' + taxa_juro, 'Valor Financiado: ' + valor_financiado 

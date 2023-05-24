@@ -3,6 +3,7 @@ import time
 import os
 import pdfplumber
 import shutil
+from datetime import datetime
 
 import funcoes   as f
 import importar  as sicredi
@@ -344,12 +345,22 @@ def main():
                         
                         if versao == 'sicredi':                        
                             ##Busca dados do cabeçalho no BD                            
-                            sql_consulta = 'select titulo,associado,nro_parcelas,parcela,valor_financiado,tx_juro,multa,liberacao from ficha_grafica WHERE titulo = %s AND situacao = "ATIVO"'
+                            sql_consulta = 'select titulo,associado,nro_parcelas,parcela,valor_financiado,tx_juro,multa,liberacao,id from ficha_grafica WHERE titulo = %s AND situacao = "ATIVO"'
                             cursor.execute(sql_consulta, (titulo,))                                                                        
                             dados_cabecalho = cursor.fetchall()
                                                                                                                                                                                                                               
                             ##busca detalhes do BD
                             ##Alimenta variaveis para relatorio
+                            sql_parcelas = 'select id,data,valor_credito from ficha_detalhe WHERE id_ficha_grafica = %s AND valor_credito > 0'
+                            cursor.execute(sql_parcelas, [dados_cabecalho[0][8]])
+                            resultParcelas = cursor.fetchall()
+                            for parcela in resultParcelas:
+                                totalMeses = (datetime.today().year - parcela[1].year) * 12 + (
+                                            datetime.today().month - parcela[1].month)
+                                print(totalMeses)
+                                resultJurosComposto = f.calcularJuros(parcela[2], dados_cabecalho[0][5], totalMeses)
+                                datetime.strptime('21/11/2015', "%d/%m/%Y")
+                                resultJurosSimples = f.calcularJuros(parcela[2], dados_cabecalho[0][5], totalMeses, False)
                         else:
                             sql_consulta = 'select titulo,associado,modalidade_amortizacao,nro_parcelas,parcela,valor_financiado,tx_juro,multa,liberacao from ficha_grafica WHERE titulo = %s AND situacao = "ATIVO"'
                             cursor.execute(sql_consulta, (titulo,))                                                                        

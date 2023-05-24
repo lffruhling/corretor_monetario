@@ -175,10 +175,10 @@ def main():
     ## Campos para defini~çao dos parâmetros padrão (Aba Parâmetros)    
     lista_indices_parametros = []
     lista_indices_parametros.append(sg.Checkbox(text='IGPM', key='ed_igpm_param'))
-    lista_indices_parametros.append(sg.Checkbox(text='IPCA', key='ed_igpm_param'))
-    lista_indices_parametros.append(sg.Checkbox(text='CDI', key='ed_igpm_param'))
-    lista_indices_parametros.append(sg.Checkbox(text='INPC', key='ed_igpm_param'))
-    lista_indices_parametros.append(sg.Checkbox(text='TR', key='ed_igpm_param'))
+    lista_indices_parametros.append(sg.Checkbox(text='IPCA', key='ed_ipca_param'))
+    lista_indices_parametros.append(sg.Checkbox(text='CDI', key='ed_cdi_param'))
+    lista_indices_parametros.append(sg.Checkbox(text='INPC', key='ed_inpc_param'))
+    lista_indices_parametros.append(sg.Checkbox(text='TR', key='ed_tr_param'))
     frame_indices_parametros = sg.Frame('Índices de Correção', [lista_indices_parametros], expand_x=True)
     
     lista_multa_parametros = []
@@ -362,6 +362,47 @@ def main():
                 tela['-TABLE-'].update(values = fichas_importadas)    
                 
                 cursor.close()
+
+            if eventos == 'btn_salvar_parametros_gerais':
+                print('Salvar parâmetros gerais')
+
+                vincidencia_param = valores['ed_multa_incidencia_param']
+
+                ## Trata campos dos parâmetros
+                if valores['ed_multa_perc_param'] == '':
+                    vmulta_perc_param = 0
+                else:
+                    vmulta_perc_param = valores['ed_multa_perc_param'].replace(',','.')
+                    vmulta_perc_param = float(vmulta_perc_param)
+
+                if valores['ed_multa_valor_param'] == '':
+                    vmulta_valor_param = 0
+                else:
+                    vmulta_valor_param = valores['ed_multa_valor_param'].replace(',','.')
+                    vmulta_valor_param = float(vmulta_valor_param)
+
+                if valores['ed_honorarios_perc_param'] == '':
+                    vhonorarios_perc_param = 0
+                else:
+                    vhonorarios_perc_param = valores['ed_honorarios_perc_param'].replace(',','.')
+                    vhonorarios_perc_param = float(vhonorarios_perc_param)
+
+                if valores['ed_honorarios_valor_param'] == '':
+                    vhonorarios_valor_param = 0
+                else:
+                    vhonorarios_valor_param = valores['ed_honorarios_valor_param'].replace(',','.')
+                    vhonorarios_valor_param = float(vhonorarios_valor_param)
+                
+                if valores['ed_outros_valor_param'] == '':
+                    voutros_valor_param = 0
+                else:
+                    voutros_valor_param = valores['ed_outros_valor_param'].replace(',','.')
+                    voutros_valor_param = float(voutros_valor_param)
+
+                try:
+                    f.salvarParametrosGerais(valores['ed_igpm_param'], valores['ed_ipca_param'], valores['ed_cdi_param'], valores['ed_inpc_param'], valores['ed_tr_param'], vmulta_perc_param, vmulta_valor_param, vincidencia_param, vhonorarios_perc_param, vhonorarios_valor_param, voutros_valor_param)
+                except Exception as erro:
+                    print('Ocorreu um erro ao tentar salvar os novos parâmetros gerais. ' + str(erro))
 
             
             if eventos == 'Calcular':

@@ -27,7 +27,7 @@ def salvarParametrosGerais(igpm, ipca, cdi, inpc, tr, multa_perc, multa_valor_fi
     db     = conexao()
     cursor = db.cursor()
     
-    vsql = 'INSERT INTO ficha_parametros(igpm, ipca, cdi, inpc, tr, multa_perc, multa_valor_fixo, multa_incidencia, honorarios_perc, honorarios_valor_fixo, outros_valor)\
+    vsql = 'INSERT INTO parametros_gerais(igpm, ipca, cdi, inpc, tr, multa_perc, multa_valor_fixo, multa_incidencia, honorarios_perc, honorarios_valor_fixo, outros_valor)\
             VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
         
     parametros = (igpm, ipca, cdi, inpc, tr, multa_perc, multa_valor_fixo, multa_incidencia, honorarios_perc, honorarios_valor_fixo, outros_valor)

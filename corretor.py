@@ -243,8 +243,8 @@ def main():
                 [sg.TabGroup
                     (
                         [
-                            [sg.Tab('Principal', principal, title_color='Red',border_width =10), sg.Tab('Importadas', importadas, key='aba_importadas'), sg.Tab('Parâmetros', parametros)]                            
-                        ]
+                            [sg.Tab('Principal', principal, title_color='Red',border_width =10), sg.Tab('Importadas', importadas, key='aba_importadas'), sg.Tab('Parâmetros', parametros, key='aba_parametros')]                            
+                        ], enable_events=True, key='-abas-'
                     )
                 ]
              ]  
@@ -284,15 +284,54 @@ def main():
 
             tela['ed_informacoes'].update(informacoes)                
             break
+
+    def carregaParametros(tela):
+        parametros = f.carregaParametrosGerais()
+
+        if parametros != None:
+            tela['ed_igpm'].update(parametros[0])
+            tela['ed_igpm_param'].update(parametros[0])
+            tela['ed_ipca'].update(parametros[1])
+            tela['ed_ipca_param'].update(parametros[1])
+            tela['ed_cdi'].update(parametros[2])
+            tela['ed_cdi_param'].update(parametros[2])
+            tela['ed_inpc'].update(parametros[3])
+            tela['ed_inpc_param'].update(parametros[3])
+            tela['ed_tr'].update(parametros[4])
+            tela['ed_tr_param'].update(parametros[4])
+
+            tela['ed_multa_perc'].update(parametros[5])
+            tela['ed_multa_perc_param'].update(parametros[5])
+            tela['ed_multa_valor'].update(parametros[6])
+            tela['ed_multa_valor_param'].update(parametros[6])
+            tela['ed_multa_incidencia'].update(parametros[7])
+            tela['ed_multa_incidencia_param'].update(parametros[7])
+
+            tela['ed_honorarios_perc'].update(parametros[8])
+            tela['ed_honorarios_perc_param'].update(parametros[8])
+            tela['ed_honorarios_valor'].update(parametros[9])
+            tela['ed_honorarios_valor_param'].update(parametros[9])
+
+            tela['ed_outros_valor'].update(parametros[10])
+            tela['ed_outros_valor_param'].update(parametros[10])
+
+            print('Carregou os parâmetros padrão.')
+        return True
+        
     
     busca_licena = verificaLicenca() 
     if (busca_licena == 'THMPV-77D6F-94376-8HGKG-VRDRQ'):                
         tela = sg.Window('Corretor', tabgrp)
         progress_bar = tela['progressbar']
 
+        carregou_parametros = False
+
         while True:                
             eventos, valores = tela.read(timeout=0.1)
             
+            if carregou_parametros == False:
+                carregou_parametros  = carregaParametros(tela)
+
             if eventos is None or eventos == "Fechar":
                 break
             
@@ -301,6 +340,13 @@ def main():
             progress_bar.update(visible=False)
             progress_bar.UpdateBar(0)
             
+            #if eventos == '-abas-':        
+            #    print(valores)
+
+            if '+CLICKED+' in eventos:
+                print(valores['-TABLE-']) 
+                #sg.popup("You clicked row:{} Column: {}".format(eventos[2][0], eventos[2][1]))
+
             if eventos == '-INPUT-':
                 atualizaInfo()     
                 
@@ -400,10 +446,11 @@ def main():
                     voutros_valor_param = float(voutros_valor_param)
 
                 try:
-                    f.salvarParametrosGerais(valores['ed_igpm_param'], valores['ed_ipca_param'], valores['ed_cdi_param'], valores['ed_inpc_param'], valores['ed_tr_param'], vmulta_perc_param, vmulta_valor_param, vincidencia_param, vhonorarios_perc_param, vhonorarios_valor_param, voutros_valor_param)
+                   if f.salvarParametrosGerais(valores['ed_igpm_param'], valores['ed_ipca_param'], valores['ed_cdi_param'], valores['ed_inpc_param'], valores['ed_tr_param'], vmulta_perc_param, vmulta_valor_param, vincidencia_param, vhonorarios_perc_param, vhonorarios_valor_param, voutros_valor_param):
+                       carregaParametros(tela)
+                       sg.popup('Parâmetros definidos com sucesso!')
                 except Exception as erro:
-                    print('Ocorreu um erro ao tentar salvar os novos parâmetros gerais. ' + str(erro))
-
+                    sg.popup('Ocorreu um erro ao tentar salvar. ' + str(erro))                    
             
             if eventos == 'Calcular':
                 ## Aqui colocar validações dos campos

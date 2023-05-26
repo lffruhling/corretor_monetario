@@ -205,7 +205,7 @@ def importaFichaGrafica(vCaminhoTxt, informacoes=False):
         print(dataEntradaPrejuizo) #Salvar a data de entrada no prejuizo na base
 
     if informacoes:
-        return 'Coop: Sicredi   Modalidade: ' + str(modalidade_amortizacao), 'Associado: ' + str(associado), 'Data de Liberação: ' + str(liberacao.strftime('%d/%m/%Y')), 'Número de Parcelas: ' + str(nro_parcelas), 'Parcela atual: ' + str(parcela), 'Título: ' + titulo, 'Taxa de Juros: ' + taxa_juro, 'Valor Financiado: ' + valor_financiado 
+        return 'Coop: Sicredi   Modalidade: ' + str(modalidade_amortizacao), 'Associado: ' + str(associado), 'Data de Liberação: ' + str(liberacao.strftime('%d/%m/%Y')), 'Número de Parcelas: ' + str(nro_parcelas), 'Parcela atual: ' + str(parcela), 'Título: ' + titulo, 'Taxa de Juros: ' + taxa_juro, 'Valor Financiado: ' + valor_financiado, 'Data da Inadimplência: ' + dataEntradaPrejuizo.strftime("%m/%d/%Y")
     else:            
         db     = f.conexao()
         cursor = db.cursor()
@@ -215,10 +215,10 @@ def importaFichaGrafica(vCaminhoTxt, informacoes=False):
         cursor.fetchall()
         db.commit()
 
-        vsql = 'INSERT INTO ficha_grafica(versao, associado, liberacao, nro_parcelas, parcela, situacao, titulo, tx_juro, valor_financiado, modalidade_amortizacao)\
-            VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+        vsql = 'INSERT INTO ficha_grafica(versao, associado, liberacao, nro_parcelas, parcela, situacao, titulo, tx_juro, valor_financiado, modalidade_amortizacao, entrada_prejuizo)\
+            VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
         
-        parametros = ('sicredi', str(associado), liberacao, nro_parcelas, parcela, 'ATIVO', titulo, taxa_juro, valor_financiado, modalidade_amortizacao)    
+        parametros = ('sicredi', str(associado), liberacao, nro_parcelas, parcela, 'ATIVO', titulo, taxa_juro, valor_financiado, modalidade_amortizacao, dataEntradaPrejuizo)
 
         cursor.execute(vsql, parametros)
         resultado = cursor.fetchall()

@@ -1,10 +1,11 @@
 import json
 import MySQLdb
 import constantes as c
+import locale
 
 def conexao():
-    return MySQLdb.connect(host="10.4.21.24", user='root', passwd='*Sicred1',db='db_teste')
-    # return MySQLdb.connect(host="mysql.edersondallabrida.com", user=c.USUARIO_DB1, passwd=c.SENHA_DB1,db=c.NOME_DB1)
+    # return MySQLdb.connect(host="10.4.21.24", user='root', passwd='*Sicred1',db='db_teste')
+    return MySQLdb.connect(host="mysql.edersondallabrida.com", user=c.USUARIO_DB1, passwd=c.SENHA_DB1,db=c.NOME_DB1)
     
 def salvaParametrosImportacao(id_ficha, igpm, ipca, cdi, inpc, tr, multa_perc, multa_valor_fixo, multa_incidencia, honorarios_perc, honorarios_valor_fixo, outros_valor):
     db     = conexao()
@@ -106,14 +107,14 @@ def calculaPrice(valorEmprestimo, nroParcelas, taxaJuros):
 
 #dados = carregaIndice('igpm', 2022, 3)
 
-def calcularJuros(valorParcela, txJuro, totalMeses, composto=True):
+def calcularJurosPrice(valorParcela, txJuro, totalMeses, composto=True):
     valorParcelaAcumulado = 0
 
     if composto:
         valorParcelaAcumulado   = valorParcela
 
     totalJurosAcumulado     = 0
-    txJuroCalculada = txJuro/100
+    txJuroCalculada         = txJuro/100
 
     for i in range(totalMeses + 1):
         if composto:
@@ -131,3 +132,8 @@ def calcularJuros(valorParcela, txJuro, totalMeses, composto=True):
         }
     else:
         return totalJurosAcumulado
+
+def moeda(valor):
+    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+    valor = locale.currency(valor, grouping=True, symbol=None)
+    return ('R$ %s' % valor)

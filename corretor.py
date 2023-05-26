@@ -339,41 +339,62 @@ def main():
 
                         db     = f.conexao()
                         cursor = db.cursor()
-                        tipo = 'Correcao_Comum'     
+                        tipo = 'Correcao_Comum'
+
+                        jurosMorasAcumulado = 0
                         
                         ## Aqui Iniciaria a busca dos dados do banco e o calculo, adicionando as linhas calculadas para a confecção do relatório               
                         
                         if versao == 'sicredi':                        
                             ##Busca dados do cabeçalho no BD                            
-                            sql_consulta = 'select titulo,associado,nro_parcelas,parcela,valor_financiado,tx_juro,multa,liberacao,id from ficha_grafica WHERE titulo = %s AND situacao = "ATIVO"'
+                            sql_consulta = 'select titulo,associado,nro_parcelas,parcela,valor_financiado,tx_juro,multa,liberacao,id,entrada_prejuizo from ficha_grafica WHERE titulo = %s AND situacao = "ATIVO"'
                             cursor.execute(sql_consulta, (titulo,))                                                                        
                             dados_cabecalho = cursor.fetchall()
                                                                                                                                                                                                                               
                             ##busca detalhes do BD
                             ##Alimenta variaveis para relatorio
-                            sql_parcelas = 'select id,data,valor_credito from ficha_detalhe WHERE id_ficha_grafica = %s AND valor_credito > 0'
-                            cursor.execute(sql_parcelas, [dados_cabecalho[0][8]])
+                            sql_parcelas = 'select id, data, valor_credito, historico from ficha_detalhe WHERE id_ficha_grafica = %s AND valor_credito > 0 AND (historico like %s or historico like %s)'
+                            cursor.execute(sql_parcelas, [dados_cabecalho[0][8],"%AMORTI%", "%LIQUI%"])
                             resultParcelas = cursor.fetchall()
                             for parcela in resultParcelas:
                                 totalMeses = (datetime.today().year - parcela[1].year) * 12 + (
                                             datetime.today().month - parcela[1].month)
-                                print(totalMeses)
-                                resultJurosComposto = f.calcularJuros(parcela[2], dados_cabecalho[0][5], totalMeses)
-                                datetime.strptime('21/11/2015', "%d/%m/%Y")
-                                resultJurosSimples = f.calcularJuros(parcela[2], dados_cabecalho[0][5], totalMeses, False)
+
+                                resultJurosComposto = f.calcularJurosPrice(parcela[2], dados_cabecalho[0][5], totalMeses)
+
+                                #Valida se a data da parcela é maior ou igual a data de entrada para prejuizo, se sim, adiciona mora
+                                # if parcela[1] >=dados_cabecalho[0][9]:
+                                totalMesesPrejuizo = (datetime.today().year - dados_cabecalho[0][9].year) * 12 + (
+                                        datetime.today().month - dados_cabecalho[0][9].month)
+                                #Falta ler campo e colocar a taxa de juros da mora dinamicamente
+                                jurosMorasAcumulado = jurosMorasAcumulado + f.calcularJurosPrice(parcela[2], 1, totalMesesPrejuizo, False)
+
+                                lancamentos.append({
+                                    "data" : parcela[1].strftime('%d/%m/%Y'),
+                                    "descricao" : parcela[3],
+                                    "valor" : f.moeda(parcela[2]),
+                                    "correcao" : f'{dados_cabecalho[0][5]:,.2f}%',
+                                    "corrigido" : f.moeda(jurosMorasAcumulado),
+                                    "juros" : f.moeda(resultJurosComposto['totalJurosAcumuladoPeriodo']),
+                                    "total" : f.moeda(resultJurosComposto['valorParcelaAtualizada']),
+                                })
+
+                                print(lancamentos)
                         else:
                             sql_consulta = 'select titulo,associado,modalidade_amortizacao,nro_parcelas,parcela,valor_financiado,tx_juro,multa,liberacao from ficha_grafica WHERE titulo = %s AND situacao = "ATIVO"'
                             cursor.execute(sql_consulta, (titulo,))                                                                        
                             dados_cabecalho = cursor.fetchall()                                        
                             
                         context = {
-                                      "nome_associado" : dados_cabecalho[0][1],
-                                      "tipo_correcao"  : tipo,
-                                      "numero_titulo"  : dados_cabecalho[0][0],
-                                      "forma_calculo"  : "Parcelas Atualizadas Individualmente De 27/09/2013 a 11/04/2023 sem correção Multa de 2,0000 sobre o valor corrigido+juros principais+juros moratórios",
-                                      "forma_juros"    : "Juros ok",
-                                      "lancamentos"    : lancamentos
-                                  }
+                            "nome_associado" : dados_cabecalho[0][1],
+                            "tipo_correcao"  : tipo,
+                            "numero_titulo"  : dados_cabecalho[0][0],
+                            "forma_calculo"  : "Parcelas Atualizadas Individualmente De 27/09/2013 a 11/04/2023 sem correção Multa de 2,0000 sobre o valor corrigido+juros principais+juros moratórios",
+                            "forma_juros"    : "Juros ok",
+                            "lancamentos"    : lancamentos,
+                            "juros_mora_acumulado": jurosMorasAcumulado
+                        }
+
                         progress_bar.UpdateBar(86)
                         ## Gera o relatório e transforma em .pdf
                         template = DocxTemplate('C:/Temp/Fichas_Graficas/Template.docx')                    

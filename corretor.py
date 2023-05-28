@@ -137,6 +137,8 @@ def main():
     lista_arquivo = []
     lista_arquivo.append(sg.Input(key='-INPUT-', enable_events=True))
     lista_arquivo.append(sg.FileBrowse(button_text='Procurar', enable_events=True, key='arquivo'))
+    lista_arquivo.append(sg.Text("Vazio", font=(15,15), key="txt_titulo"))
+    lista_arquivo.append(sg.Button("Cancelar", key='btn_cancelar', visible=False))
     frame_arquivo = sg.Frame('Selecione a Ficha Gráfica', [lista_arquivo], expand_x=True)
     
     lista_indices = []
@@ -254,6 +256,21 @@ def main():
     if ((busca_licena == None) or (busca_licena != 'THMPV-77D6F-94376-8HGKG-VRDRQ')):
         licenca()
 
+    def atualizaTxtTitulo(texto, green=False):
+        tela['txt_titulo'].update(texto)
+
+        if green:
+            tela['txt_titulo'].update(text_color="green")
+            tela['btn_cancelar'].update(visible=True)
+        else:
+            tela['txt_titulo'].update(text_color="red")
+            tela['btn_cancelar'].update(visible=True)
+
+        if texto == "Vazio":
+            tela['txt_titulo'].update(text_color="black")
+            tela['ed_informacoes'].update("")
+            tela['btn_cancelar'].update(visible=False)
+
     def atualizaInfo():
         global informacoes
         informacoes = ''
@@ -281,6 +298,10 @@ def main():
 
             for l in dados:
                 informacoes = informacoes + ' ' + str(l) + '\n'
+
+                if "Título" in str(l):
+                    titulo = str(l).replace("Título:","")
+                    atualizaTxtTitulo(titulo)
 
             tela['ed_informacoes'].update(informacoes)                
             break
@@ -343,9 +364,22 @@ def main():
             #if eventos == '-abas-':        
             #    print(valores)
 
+            if eventos == 'btn_cancelar':
+                tela['-INPUT-'].update("")
+                carregaParametros(tela)
+                atualizaTxtTitulo('Vazio')
+
             if '+CLICKED+' in eventos:
-                print(valores['-TABLE-']) 
-                #sg.popup("You clicked row:{} Column: {}".format(eventos[2][0], eventos[2][1]))
+                id_ficha_grafica = fichas_importadas[valores['-TABLE-'][0]][0]
+
+                if id_ficha_grafica > 0:
+                    parametros_ficha = f.carregaParametrosFichaGrafica(id_ficha_grafica)
+                    dados_ficha      = f.carregaDadosCabecalhoFichaGrafica(id_ficha_grafica)
+                    print(dados_ficha)
+
+                    atualizaTxtTitulo(str(dados_ficha[0]), True)                
+                    print(valores['-abas-'])
+                    tela['-abas-'].update('aba_principal')
 
             if eventos == '-INPUT-':
                 atualizaInfo()     

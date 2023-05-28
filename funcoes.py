@@ -67,7 +67,20 @@ def carregaParametrosFichaGrafica(ficha_id):
     db     = conexao()
     cursor = db.cursor()
 
-    vsql = 'SELECT igpm, ipca, cdi, inpc, tr, multa_perc, multa_valor_fixo, multa_incidencia, honorarios_perc, honorarios_valor_fixo, outros_valor FROM ficha_parametros WHERE id_ficha_grafica=' + ficha_id
+    vsql = 'SELECT igpm, ipca, cdi, inpc, tr, multa_perc, multa_valor_fixo, multa_incidencia, honorarios_perc, honorarios_valor_fixo, outros_valor FROM ficha_parametros WHERE id_ficha_grafica=' + str(ficha_id)
+    cursor.execute(vsql,)
+    resultado = cursor.fetchall()
+
+    if len(resultado) > 0:
+        return resultado[0]
+    else:
+        return None
+
+def carregaDadosCabecalhoFichaGrafica(ficha_id):
+    db     = conexao()
+    cursor = db.cursor()
+
+    vsql = 'SELECT titulo,versao,associado,nro_parcelas,parcela,valor_financiado,tx_juro,multa,liberacao,modalidade_amortizacao FROM ficha_grafica WHERE id=' + str(ficha_id)
     cursor.execute(vsql,)
     resultado = cursor.fetchall()
 

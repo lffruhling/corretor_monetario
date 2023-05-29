@@ -341,7 +341,9 @@ def main():
                         cursor = db.cursor()
                         tipo = 'Correcao_Comum'
 
-                        jurosMorasAcumulado = 0
+                        totalJurosAcumulado     = 0
+                        totalMorasAcumulado     = 0
+                        totalParcelasAcumuladas = 0
                         
                         ## Aqui Iniciaria a busca dos dados do banco e o calculo, adicionando as linhas calculadas para a confecção do relatório               
                         
@@ -362,37 +364,55 @@ def main():
 
                                 resultJurosComposto = f.calcularJurosPrice(parcela[2], dados_cabecalho[0][5], totalMeses)
 
+                                totalParcelasAcumuladas = totalParcelasAcumuladas + parcela[2]
+
                                 #Valida se a data da parcela é maior ou igual a data de entrada para prejuizo, se sim, adiciona mora
                                 # if parcela[1] >=dados_cabecalho[0][9]:
                                 totalMesesPrejuizo = (datetime.today().year - dados_cabecalho[0][9].year) * 12 + (
                                         datetime.today().month - dados_cabecalho[0][9].month)
                                 #Falta ler campo e colocar a taxa de juros da mora dinamicamente
-                                jurosMorasAcumulado = jurosMorasAcumulado + f.calcularJurosPrice(parcela[2], 1, totalMesesPrejuizo, False)
+                                totalMorasAcumulado = totalMorasAcumulado + f.calcularJurosPrice(parcela[2], 1, totalMesesPrejuizo, False)
 
                                 lancamentos.append({
-                                    "data" : parcela[1].strftime('%d/%m/%Y'),
+                                    "data"      : parcela[1].strftime('%d/%m/%Y'),
                                     "descricao" : parcela[3],
-                                    "valor" : f.moeda(parcela[2]),
-                                    "correcao" : f'{dados_cabecalho[0][5]:,.2f}%',
-                                    "corrigido" : f.moeda(jurosMorasAcumulado),
-                                    "juros" : f.moeda(resultJurosComposto['totalJurosAcumuladoPeriodo']),
-                                    "total" : f.moeda(resultJurosComposto['valorParcelaAtualizada']),
+                                    "valor"     : f.moeda(parcela[2]),
+                                    "correcao"  : f'{dados_cabecalho[0][5]:,.2f}%',
+                                    "corrigido" : f.moeda(totalMorasAcumulado),
+                                    "juros"     : f.moeda(resultJurosComposto['totalJurosAcumuladoPeriodo']),
+                                    "total"     : f.moeda(resultJurosComposto['valorParcelaAtualizada']),
                                 })
+
+                                totalJurosAcumulado = totalJurosAcumulado + resultJurosComposto['totalJurosAcumuladoPeriodo']
 
                                 print(lancamentos)
                         else:
                             sql_consulta = 'select titulo,associado,modalidade_amortizacao,nro_parcelas,parcela,valor_financiado,tx_juro,multa,liberacao from ficha_grafica WHERE titulo = %s AND situacao = "ATIVO"'
                             cursor.execute(sql_consulta, (titulo,))                                                                        
-                            dados_cabecalho = cursor.fetchall()                                        
+                            dados_cabecalho = cursor.fetchall()
+
+                        totalBC =  totalMorasAcumulado + totalJurosAcumulado + totalParcelasAcumuladas
+                        valorMulta = ((totalMorasAcumulado + totalBC)*2)/100
                             
                         context = {
-                            "nome_associado" : dados_cabecalho[0][1],
-                            "tipo_correcao"  : tipo,
-                            "numero_titulo"  : dados_cabecalho[0][0],
-                            "forma_calculo"  : "Parcelas Atualizadas Individualmente De 27/09/2013 a 11/04/2023 sem correção Multa de 2,0000 sobre o valor corrigido+juros principais+juros moratórios",
-                            "forma_juros"    : "Juros ok",
-                            "lancamentos"    : lancamentos,
-                            "juros_mora_acumulado": jurosMorasAcumulado
+                            "nome_associado"            : dados_cabecalho[0][1],
+                            "tipo_correcao"             : tipo,
+                            "numero_titulo"             : dados_cabecalho[0][0],
+                            "forma_calculo"             : "Parcelas Atualizadas Individualmente De 27/09/2013 a 11/04/2023 sem correção Multa de 2,0000 sobre o valor corrigido+juros principais+juros moratórios",
+                            "forma_juros"               : "Juros ok",
+                            "lancamentos"               : lancamentos,
+                            "valor_titulo"              : f.moeda(dados_cabecalho[0][4]),
+                            "total_parcelas_amortizadas": f.moeda(dados_cabecalho[0][4] - totalParcelasAcumuladas),
+                            "total_pago"                : f.moeda(totalParcelasAcumuladas),
+                            "total_juros_acumulado"     : f.moeda(totalJurosAcumulado),
+                            "total_mora_acumulado"      : f.moeda(totalMorasAcumulado),
+                            "total_parcela_e_juros"     : f.moeda(totalJurosAcumulado + totalParcelasAcumuladas),
+                            "total_bc"                  : f.moeda(totalBC),
+                            "total_multa"               : f.moeda(valorMulta),
+                            "total"                     : f.moeda(totalBC + valorMulta),
+                            "total_juros"               : f.moeda(totalMorasAcumulado + totalJurosAcumulado)
+
+
                         }
 
                         progress_bar.UpdateBar(86)

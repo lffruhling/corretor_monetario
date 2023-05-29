@@ -151,7 +151,7 @@ def main():
 
     lista_informacoes = []
     lista_informacoes.append(sg.Multiline(default_text=informacoes, expand_x=True, size=(None, 5), key="ed_informacoes", enable_events=True, auto_refresh=True) )    
-    frame_informacoes = sg.Frame('Informações da Ficha Gráfica', [lista_informacoes], expand_x=True, visible=False, key='Info')      
+    frame_informacoes = sg.Frame('Informações da Ficha Gráfica Selecionada', [lista_informacoes], expand_x=True, visible=True, key='Info')      
     
     lista_multa = []
     lista_multa.append(sg.Text(text="Percentual:", font=("Arial",10, "bold")))    
@@ -245,7 +245,7 @@ def main():
                 [sg.TabGroup
                     (
                         [
-                            [sg.Tab('Principal', principal, title_color='Red',border_width =10), sg.Tab('Importadas', importadas, key='aba_importadas'), sg.Tab('Parâmetros', parametros, key='aba_parametros')]                            
+                            [sg.Tab('Principal', principal, title_color='Red',border_width =10,key='aba_principal'), sg.Tab('Importadas', importadas, key='aba_importadas'), sg.Tab('Parâmetros', parametros, key='aba_parametros')]                            
                         ], enable_events=True, key='-abas-'
                     )
                 ]
@@ -274,9 +274,7 @@ def main():
     def atualizaInfo():
         global informacoes
         informacoes = ''
-        while True:            
-            tela['Info'].update(visible=True)
-
+        while True:                        
             eventos, valores = tela.read(timeout=0.1)
             caminho = valores['arquivo']
 
@@ -339,7 +337,6 @@ def main():
             print('Carregou os parâmetros padrão.')
         return True
         
-    
     busca_licena = verificaLicenca() 
     if (busca_licena == 'THMPV-77D6F-94376-8HGKG-VRDRQ'):                
         tela = sg.Window('Corretor', tabgrp)
@@ -375,13 +372,42 @@ def main():
                 if id_ficha_grafica > 0:
                     parametros_ficha = f.carregaParametrosFichaGrafica(id_ficha_grafica)
                     dados_ficha      = f.carregaDadosCabecalhoFichaGrafica(id_ficha_grafica)
+
                     print(dados_ficha)
 
-                    atualizaTxtTitulo(str(dados_ficha[0]), True)                
-                    print(valores['-abas-'])
-                    tela['-abas-'].update('aba_principal')
+                    informacoes = ''
+                    informacoes = informacoes + 'Coop: ' + dados_ficha[1] + '   ' + 'Modalidade: ' + dados_ficha[9]
+                    informacoes = informacoes + '\n' + 'Associado: ' + dados_ficha[2] + '\n'
+                    informacoes = informacoes + 'Data de Liberação: ' + dados_ficha[8].strftime("%d/%m/%Y") + '\n'
+                    informacoes = informacoes + 'Número de Parcelas: ' + str(dados_ficha[3]) + '\n'
+                    informacoes = informacoes + 'Parcela Atual: ' + str(dados_ficha[4]) + '\n'
+                    informacoes = informacoes + 'Título: ' + dados_ficha[0] + '\n'
+                    informacoes = informacoes + 'Taxa de Juros: ' + str(dados_ficha[6]) + '\n'
+                    informacoes = informacoes + 'Valor Financiado: ' + str(dados_ficha[5])
+                    tela['ed_informacoes'].update(informacoes)
+
+                    if dados_ficha != []:
+                        tela['ed_igpm'].update(parametros_ficha[0])
+                        tela['ed_ipca'].update(parametros_ficha[1])
+                        tela['ed_cdi'].update(parametros_ficha[2])
+                        tela['ed_inpc'].update(parametros_ficha[3])
+                        tela['ed_tr'].update(parametros_ficha[4])
+
+                        tela['ed_multa_perc'].update(parametros_ficha[5])
+                        tela['ed_multa_valor'].update(parametros_ficha[6])
+                        tela['ed_multa_incidencia'].update(parametros_ficha[7])
+                        
+                        tela['ed_honorarios_perc'].update(parametros_ficha[8])
+                        tela['ed_honorarios_valor'].update(parametros_ficha[9])
+                        tela['ed_outros_valor'].update(parametros_ficha[10])
+
+                        tela['-INPUT-'].update("")
+
+                    atualizaTxtTitulo(str(dados_ficha[0]), True)
+                    tela['aba_principal'].select()
 
             if eventos == '-INPUT-':
+                carregaParametros(tela)
                 atualizaInfo()     
                 
             ## Tratamento para campos de valor não aceitar letras

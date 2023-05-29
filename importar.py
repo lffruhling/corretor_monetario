@@ -291,10 +291,12 @@ def importaFichaGraficaDetalhe(vArquivoTxt, id_ficha_grafica):
 
     return titulo
             
-def importarSicredi(vCaminhoTxt):
+def importarSicredi(vCaminhoTxt, parametros):
     print('Importando arquivo: ' + str(vCaminhoTxt))
     ficha_grafica = importaFichaGrafica(vCaminhoTxt)
     if ficha_grafica > 0:
+        f.salvaParametrosImportacao(ficha_grafica, parametros['igpm'], parametros['ipca'], parametros['cdi'], parametros['inpc'], parametros['tr'], parametros['multa_perc'],\
+                                    parametros['multa_valor'], parametros['multa_incidencia'], parametros['honorarios_perc'], parametros['honorarios_valor'], parametros['outros_valor'])
         ficha_titulo = importaFichaGraficaDetalhe(vCaminhoTxt, ficha_grafica)        
 
     return ficha_titulo

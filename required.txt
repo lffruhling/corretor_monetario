@@ -1,0 +1,5 @@
+pdfplumber==0.9.0
+docxtpl==0.16.7
+docx2pdf==0.1.8
+PySimpleGUI==4.60.5
+mysqlclient==2.1.1

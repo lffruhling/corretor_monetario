@@ -248,10 +248,12 @@ def importar_detalhes(vArquivoTxt, titulo, id_ficha_grafica):
     if cursor.rowcount > 0:
         print('Detalhe Ficha Gráfica Cresol importado com sucesso!')
     
-def importarCresol(vArquivoTxt):
+def importarCresol(vArquivoTxt, parametros):
     print('Importando arquivo: ' + str(vArquivoTxt))
     ficha_grafica = importar_cabecalho(vArquivoTxt)
     if ficha_grafica > 0:
+        f.salvaParametrosImportacao(ficha_grafica, parametros['igpm'], parametros['ipca'], parametros['cdi'], parametros['inpc'], parametros['tr'], parametros['multa_perc'],\
+                                    parametros['multa_valor'], parametros['multa_incidencia'], parametros['honorarios_perc'], parametros['honorarios_valor'], parametros['outros_valor'])
         importar_detalhes(vArquivoTxt, titulo, ficha_grafica)
 
     return titulo

@@ -1,10 +1,10 @@
-import json
 import MySQLdb
 import constantes as c
+from datetime import datetime
 
 def conexao():
-    return MySQLdb.connect(host="10.4.21.24", user='root', passwd='*Sicred1',db='db_teste')
-    #return MySQLdb.connect(host="mysql.edersondallabrida.com", user=c.USUARIO_DB1, passwd=c.SENHA_DB1,db=c.NOME_DB1)
+    #return MySQLdb.connect(host="10.4.21.24", user='root', passwd='*Sicred1',db='db_teste')
+    return MySQLdb.connect(host="mysql.edersondallabrida.com", user=c.USUARIO_DB1, passwd=c.SENHA_DB1,db=c.NOME_DB1)
     
 def salvaParametrosImportacao(id_ficha, igpm, ipca, cdi, inpc, tr, multa_perc, multa_valor_fixo, multa_incidencia, honorarios_perc, honorarios_valor_fixo, outros_valor):
     db     = conexao()
@@ -18,6 +18,76 @@ def salvaParametrosImportacao(id_ficha, igpm, ipca, cdi, inpc, tr, multa_perc, m
     cursor.execute(vsql, parametros)
     resultado = cursor.fetchall()
     db.commit()
+
+    if cursor.rowcount > 0:        
+        print('Parâmetros de importação salvos com sucesso!')
+
+    cursor.close()
+    
+def salvarParametrosGerais(igpm, ipca, cdi, inpc, tr, multa_perc, multa_valor_fixo, multa_incidencia, honorarios_perc, honorarios_valor_fixo, outros_valor):
+    db     = conexao()
+    cursor = db.cursor()
+
+    vsql_update = 'UPDATE parametros_gerais SET situacao="INATIVO"'
+    cursor.execute(vsql_update,)
+    db.commit()
+    
+    vsql = 'INSERT INTO parametros_gerais(igpm, ipca, cdi, inpc, tr, multa_perc, multa_valor_fixo, multa_incidencia, honorarios_perc, honorarios_valor_fixo, outros_valor, situacao, data_inclusao)\
+            VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+        
+    parametros = (igpm, ipca, cdi, inpc, tr, multa_perc, multa_valor_fixo, multa_incidencia, honorarios_perc, honorarios_valor_fixo, outros_valor,'ATIVO',datetime.now())
+    
+    cursor.execute(vsql, parametros)
+    resultado = cursor.fetchall()
+    db.commit()
+
+    if cursor.rowcount > 0:        
+        v_retorno = True
+    else:
+        v_retorno = False
+
+    cursor.close()
+
+    return v_retorno
+
+def carregaParametrosGerais():
+    db     = conexao()
+    cursor = db.cursor()
+
+    vsql = 'SELECT igpm, ipca, cdi, inpc, tr, multa_perc, multa_valor_fixo, multa_incidencia, honorarios_perc, honorarios_valor_fixo, outros_valor FROM parametros_gerais WHERE situacao="ATIVO"'
+    cursor.execute(vsql,)
+    resultado = cursor.fetchall()
+
+    if len(resultado) > 0:
+        return resultado[0]
+    else:
+        return None
+    
+def carregaParametrosFichaGrafica(ficha_id):
+    db     = conexao()
+    cursor = db.cursor()
+
+    vsql = 'SELECT igpm, ipca, cdi, inpc, tr, multa_perc, multa_valor_fixo, multa_incidencia, honorarios_perc, honorarios_valor_fixo, outros_valor FROM ficha_parametros WHERE id_ficha_grafica=' + str(ficha_id)
+    cursor.execute(vsql,)
+    resultado = cursor.fetchall()
+
+    if len(resultado) > 0:
+        return resultado[0]
+    else:
+        return None
+
+def carregaDadosCabecalhoFichaGrafica(ficha_id):
+    db     = conexao()
+    cursor = db.cursor()
+
+    vsql = 'SELECT titulo,versao,associado,nro_parcelas,parcela,valor_financiado,tx_juro,multa,liberacao,modalidade_amortizacao FROM ficha_grafica WHERE id=' + str(ficha_id)
+    cursor.execute(vsql,)
+    resultado = cursor.fetchall()
+
+    if len(resultado) > 0:
+        return resultado[0]
+    else:
+        return None
 
 def carregaIndice(tabela, ano, mes):
     p_mes = ''

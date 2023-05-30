@@ -21,8 +21,9 @@ import winreg as wrg
 
 vPath    = 'C:/Temp/Fichas_Graficas'
 versao   = ''
-lancamentos = []
+lancamentos       = []
 fichas_importadas = []
+fichas_alcadas    = []  
 tela = None
 
 def alimentaDetalhesRelatorio(lista, data, descricao, valor, correcao, corrigido, juros, total):
@@ -118,8 +119,87 @@ def licenca():
         if eventos == sg.WINDOW_CLOSED:
             break
         if eventos == 'Fechar':
-            tela_ativar.close()            
+            tela_ativar.close()       
+
+def telaAlcadas(parametrosGerais=False):       
+    global fichas_alcadas 
+
+    if (parametrosGerais): 
+        dados = []       
+        retorno = f.carregarParametrosAlcadas()
+
+        for item in retorno:
+            dados.append(item)          
+    else:        
+        dados = fichas_alcadas
+
+    sg.theme('Reddit')
     
+    alcadas = [    
+                [sg.Text(text='Definição de Alçadas', text_color="Black", font=("Arial",12, "bold"), expand_x=True, justification='center')],  
+                [sg.Table(values=dados, headings=['Alçada', 'Perc. %'], auto_size_columns=True, display_row_numbers=False, justification='center', key='-TABLE_ALCADAS-', selected_row_colors='red on yellow', enable_events=True, expand_x=True, expand_y=True,enable_click_events=True)],
+                [sg.Text(text='Alçada %: '),sg.Input(key='ed_valor_alcada', size=(15,1)),sg.Button(' + Adicionar', key='btn_incluir_alcadas'), sg.Button(' - Remover', key='btn_remover_alcadas')],
+                [sg.Button('Salvar', key='btn_salvar_alcadas'), sg.Button('Cancelar', key='btn_cancelar_alcadas')]      
+              ]
+    
+    tela = sg.Window('Alçadas', alcadas)                
+
+    while True:                
+        eventos, valores = tela.read(timeout=0.1)
+
+        if eventos == 'btn_salvar_alcadas':            
+            tela.close()
+
+            ## Salvar parametros no banco
+            if parametrosGerais:
+                f.salvaParametrosAlcadas(dados)
+            else:
+                fichas_alcadas = dados
+
+            return None        
+
+        if eventos is None or eventos == "Cancelar":            
+            tela.close() 
+
+            if not(parametrosGerais):
+                fichas_alcadas = dados
+
+            return None           
+
+        if eventos == 'btn_incluir_alcadas':
+            i = 1            
+            for alcadas in dados:            
+                i = i + 1
+
+            if valores['ed_valor_alcada'] == '':
+                sg.popup('É necessário informar um percentual')
+            else:
+
+                if float(valores['ed_valor_alcada'].replace(",",".")) > 0:                    
+                    dados.append([i,valores['ed_valor_alcada'].replace(",",".")])                    
+                    tela['ed_valor_alcada'].update('')                    
+                    tela['-TABLE_ALCADAS-'].update(values=dados)
+
+                    if not(parametrosGerais):
+                        fichas_alcadas = dados
+        
+        if eventos == 'btn_remover_alcadas':                        
+            if valores['-TABLE_ALCADAS-'] != []:
+                dados.pop(valores['-TABLE_ALCADAS-'][0])
+
+                ## Atualiza Numeração das alçadas
+                i = 1
+                x = 0                
+                for alcadas in dados:                    
+                    dados[x] = [i, alcadas[1]]
+                    i = i + 1
+                    x = x + 1
+                
+                tela['-TABLE_ALCADAS-'].update(values=dados)
+                
+                if not(parametrosGerais):
+                    fichas_alcadas = dados            
+
 def main():            
     nome_arquivo       = ''
     tipo_arquivo       = ''
@@ -129,6 +209,7 @@ def main():
     remove_arquivo     = False    
     global tela
     global fichas_importadas
+    global fichas_alcadas
 
     if not os.path.isdir(vPath): # vemos de este diretorio ja existe        
         os.mkdir(vPath)
@@ -148,6 +229,7 @@ def main():
     lista_indices.append(sg.Checkbox(text='CDI', key='ed_cdi'))
     lista_indices.append(sg.Checkbox(text='INPC', key='ed_inpc'))
     lista_indices.append(sg.Checkbox(text='TR', key='ed_tr'))
+    lista_indices.append(sg.Button("Alçadas", key='btn_alcadas'))
     frame_indices = sg.Frame('Índices de Correção', [lista_indices], expand_x=True)
 
     lista_informacoes = []
@@ -173,7 +255,7 @@ def main():
     lista_outros = []
     lista_outros.append(sg.Text(text="Valor R$:", font=("Arial",10, "bold")))    
     lista_outros.append(sg.Input(key="ed_outros_valor", size=(20,1), default_text='0,00', enable_events=True))        
-    frame_outros = sg.Frame('Outros Valores', [lista_outros], expand_x=True)    
+    frame_outros = sg.Frame('Outros Valores', [lista_outros], expand_x=True, key='frame_outros')    
     
     ## Campos para defini~çao dos parâmetros padrão (Aba Parâmetros)    
     lista_indices_parametros = []
@@ -239,6 +321,7 @@ def main():
                     [frame_multa_parametros],
                     [frame_honorarios_parametros],
                     [frame_outros_parametros],
+                    [sg.Button('Definir Alçadas Padrão', key="btn_alcadas_padrao")],
                     [sg.Button('Salvar Parâmetros', key='btn_salvar_parametros_gerais'), sg.Button('Cancelar')]
                  ]
 
@@ -338,9 +421,17 @@ def main():
             print('Carregou os parâmetros padrão.')
         return True
         
+    def carregaAlcadasPadrao():
+        global fichas_alcadas
+
+        fichas_alcadas = []
+        alcadas = f.carregarParametrosAlcadas()
+        for item in alcadas:
+            fichas_alcadas.append(item)
+   
     busca_licena = verificaLicenca() 
     if (busca_licena == 'THMPV-77D6F-94376-8HGKG-VRDRQ'):                
-        tela = sg.Window('Corretor', tabgrp)
+        tela = sg.Window('Corretor', tabgrp, size=(None,None))
         progress_bar = tela['progressbar']
 
         carregou_parametros = False
@@ -350,6 +441,9 @@ def main():
             
             if carregou_parametros == False:
                 carregou_parametros  = carregaParametros(tela)
+                
+                carregaAlcadasPadrao()
+
 
             if eventos is None or eventos == "Fechar":
                 break
@@ -362,9 +456,16 @@ def main():
             #if eventos == '-abas-':        
             #    print(valores)
 
+            if eventos == 'btn_alcadas':                               
+                telaAlcadas()
+
+            if eventos == 'btn_alcadas_padrao':                               
+                telaAlcadas(True)
+
             if eventos == 'btn_cancelar':
                 tela['-INPUT-'].update("")
                 carregaParametros(tela)
+                carregaAlcadasPadrao()
                 atualizaTxtTitulo('Vazio')
 
             if '+CLICKED+' in eventos:
@@ -373,8 +474,12 @@ def main():
                 if id_ficha_grafica > 0:
                     parametros_ficha = f.carregaParametrosFichaGrafica(id_ficha_grafica)
                     dados_ficha      = f.carregaDadosCabecalhoFichaGrafica(id_ficha_grafica)
-
-                    print(dados_ficha)
+                    
+                    alcadas_ficha    = f.carregarFichaAlcadas(id_ficha_grafica)
+                    fichas_alcadas   = []
+                    for item in alcadas_ficha:
+                        fichas_alcadas.append(item)
+                    #print(dados_ficha)
 
                     informacoes = ''
                     informacoes = informacoes + 'Coop: ' + dados_ficha[1] + '   ' + 'Modalidade: ' + dados_ficha[9]
@@ -600,13 +705,19 @@ def main():
                         
                         progress_bar.UpdateBar(50)
                         if identificaVersao(arquivo_importar) == 'sicredi':
-                            versao = 'sicredi'
-                            titulo = sicredi.importarSicredi(arquivo_importar, parametros)    
+                            versao   = 'sicredi'
+                            retorno  = sicredi.importarSicredi(arquivo_importar, parametros)
+                            titulo   = retorno[0]
+                            ficha_id = retorno[1]
                             progress_bar.UpdateBar(74)                
                         else:
-                            versao = 'cresol'
-                            titulo = cresol.importarCresol(arquivo_importar, parametros)
+                            versao   = 'cresol'
+                            retorno  = cresol.importarCresol(arquivo_importar, parametros)
+                            titulo   = retorno[0]
+                            ficha_id = retorno[1]
                             progress_bar.UpdateBar(74)
+
+                        f.salvaFichaAlcadas(ficha_id, fichas_alcadas)
 
                         db     = f.conexao()
                         cursor = db.cursor()

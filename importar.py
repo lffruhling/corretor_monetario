@@ -299,4 +299,4 @@ def importarSicredi(vCaminhoTxt, parametros):
                                     parametros['multa_valor'], parametros['multa_incidencia'], parametros['honorarios_perc'], parametros['honorarios_valor'], parametros['outros_valor'])
         ficha_titulo = importaFichaGraficaDetalhe(vCaminhoTxt, ficha_grafica)        
 
-    return ficha_titulo
+    return ficha_titulo, ficha_grafica

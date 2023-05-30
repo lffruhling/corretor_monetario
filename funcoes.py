@@ -5,9 +5,88 @@ import locale
 from datetime import datetime
 
 def conexao():
-    # return MySQLdb.connect(host="10.4.21.24", user='root', passwd='*Sicred1',db='db_teste')
-    return MySQLdb.connect(host="mysql.edersondallabrida.com", user=c.USUARIO_DB1, passwd=c.SENHA_DB1,db=c.NOME_DB1)
+    return MySQLdb.connect(host="10.4.21.24", user='root', passwd='*Sicred1',db='db_teste')
+    #return MySQLdb.connect(host="mysql.edersondallabrida.com", user=c.USUARIO_DB1, passwd=c.SENHA_DB1,db=c.NOME_DB1)
     
+def salvaFichaAlcadas(id_ficha, alcadas=[]):
+    db     = conexao()
+    cursor = db.cursor()
+
+    vsql = 'UPDATE ficha_alcadas set situacao=%s WHERE id_ficha_grafica=%s'
+    parametros = ('INATIVO', id_ficha)
+    cursor.execute(vsql, parametros)    
+    db.commit()    
+    
+    for alcada in alcadas:
+        vsql = 'INSERT INTO ficha_alcadas(id_ficha_grafica, alcada, valor, situacao)\
+                VALUES(%s,%s,%s,%s)'
+        
+        parametros = (id_ficha, alcada[0], float(alcada[1].replace(",",".")), 'ATIVO')
+    
+        cursor.execute(vsql, parametros)
+        resultado = cursor.fetchall()
+        db.commit()
+
+        if cursor.rowcount > 0:
+            print('Alçada salva com sucesso!')
+
+    cursor.close()
+
+def salvaParametrosAlcadas(alcadas=[]):
+    db     = conexao()
+    cursor = db.cursor()
+
+    vsql = 'UPDATE parametros_alcadas set situacao="INATIVO"'    
+    cursor.execute(vsql,)    
+    db.commit()    
+    
+    for alcada in alcadas:        
+        vsql = 'INSERT INTO parametros_alcadas(alcada, valor, situacao)\
+                VALUES(%s,%s,%s)'
+        
+        #valor = alcada[1].replace(",",".")
+        parametros = (alcada[0], float(alcada[1]), 'ATIVO')
+    
+        cursor.execute(vsql, parametros)
+        resultado = cursor.fetchall()
+        db.commit()
+
+        if cursor.rowcount > 0:
+            print('Parâmetros definidos com sucesso!')
+
+    cursor.close()
+
+def carregarParametrosAlcadas():
+    db     = conexao()
+    cursor = db.cursor()
+        
+    vsql = 'SELECT alcada, valor from parametros_alcadas WHERE situacao="ATIVO"'
+    cursor.execute(vsql,)
+    resultado = cursor.fetchall()
+
+    cursor.close()
+    
+    if len(resultado) > 0:        
+        return resultado
+    else:
+        return []    
+    
+def carregarFichaAlcadas(id_ficha):
+    db     = conexao()
+    cursor = db.cursor()
+        
+    vsql = 'SELECT alcada, valor from ficha_alcadas WHERE situacao="ATIVO" and id_ficha_grafica=%s'
+    parametro = (id_ficha,)
+    cursor.execute(vsql,parametro)
+    resultado = cursor.fetchall()
+
+    cursor.close()
+    
+    if len(resultado) > 0:        
+        return resultado
+    else:
+        return []
+
 def salvaParametrosImportacao(id_ficha, igpm, ipca, cdi, inpc, tr, multa_perc, multa_valor_fixo, multa_incidencia, honorarios_perc, honorarios_valor_fixo, outros_valor):
     db     = conexao()
     cursor = db.cursor()

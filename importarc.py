@@ -256,4 +256,4 @@ def importarCresol(vArquivoTxt, parametros):
                                     parametros['multa_valor'], parametros['multa_incidencia'], parametros['honorarios_perc'], parametros['honorarios_valor'], parametros['outros_valor'])
         importar_detalhes(vArquivoTxt, titulo, ficha_grafica)
 
-    return titulo
+    return titulo, ficha_grafica

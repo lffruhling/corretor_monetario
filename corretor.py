@@ -753,7 +753,7 @@ def main():
                                 totalMesesPrejuizo = (datetime.today().year - dados_cabecalho[0][9].year) * 12 + (
                                         datetime.today().month - dados_cabecalho[0][9].month)
                                 #Falta ler campo e colocar a taxa de juros da mora dinamicamente
-                                totalMorasAcumulado = totalMorasAcumulado + f.calcularJurosPrice(parcela[2], 1, totalMesesPrejuizo, False)
+                                totalMorasAcumulado = totalMorasAcumulado + f.calcularJurosPrice(parcela[2], float(str(valores['ed_multa_perc']).replace(",",".")), totalMesesPrejuizo, False)
 
                                 lancamentos.append({
                                     "data"      : parcela[1].strftime('%d/%m/%Y'),

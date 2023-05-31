@@ -21,7 +21,7 @@ def salvaFichaAlcadas(id_ficha, alcadas=[]):
         vsql = 'INSERT INTO ficha_alcadas(id_ficha_grafica, alcada, valor, situacao)\
                 VALUES(%s,%s,%s,%s)'
         
-        parametros = (id_ficha, alcada[0], float(alcada[1].replace(",",".")), 'ATIVO')
+        parametros = (id_ficha, alcada[0], float(str(alcada[1]).replace(",",".")), 'ATIVO')
     
         cursor.execute(vsql, parametros)
         resultado = cursor.fetchall()

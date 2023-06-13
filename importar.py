@@ -198,11 +198,14 @@ def importaFichaGrafica(vCaminhoTxt, informacoes=False):
                 liberacao = pegaDataLiberacaoLinha(linha)
 
             if dataEntradaPrejuizo is None:
-                dataEntradaPrejuizo = pegaDataVencimentoParcela(linha, parcela)
+                vparcela = parcela
+                if ((nro_parcelas==1) and (parcela == nro_parcelas)):
+                    vparcela = parcela -1
+                dataEntradaPrejuizo = pegaDataVencimentoParcela(linha, vparcela)
 
             vlinha = vlinha + 1
 
-        print(dataEntradaPrejuizo) #Salvar a data de entrada no prejuizo na base
+        print('Data Entrada Prejuizo: ' + str(dataEntradaPrejuizo)) #Salvar a data de entrada no prejuizo na base
 
     if informacoes:
         return 'Coop: Sicredi   Modalidade: ' + str(modalidade_amortizacao), 'Associado: ' + str(associado), 'Data de Liberação: ' + str(liberacao.strftime('%d/%m/%Y')), 'Número de Parcelas: ' + str(nro_parcelas), 'Parcela atual: ' + str(parcela), 'Título: ' + titulo, 'Taxa de Juros: ' + taxa_juro, 'Valor Financiado: ' + valor_financiado, 'Data da Inadimplência: ' + dataEntradaPrejuizo.strftime("%m/%d/%Y")

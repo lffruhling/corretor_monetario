@@ -138,7 +138,7 @@ def telaAlcadas(parametrosGerais=False):
     alcadas = [    
                 [sg.Text(text='Definição de Alçadas', text_color="Black", font=("Arial",12, "bold"), expand_x=True, justification='center')],  
                 [sg.Table(values=dados, headings=['Alçada', 'Perc. %'], auto_size_columns=True, display_row_numbers=False, justification='center', key='-TABLE_ALCADAS-', selected_row_colors='red on yellow', enable_events=True, expand_x=True, expand_y=True,enable_click_events=True)],
-                [sg.Text(text='Alçada %: '),sg.Input(key='ed_valor_alcada', size=(15,1)),sg.Button(' + Adicionar', key='btn_incluir_alcadas'), sg.Button(' - Remover', key='btn_remover_alcadas')],
+                [sg.Text(text='Alçada %: '),sg.Input(key='ed_valor_alcada', size=(15,1), enable_events=True),sg.Button(' + Adicionar', key='btn_incluir_alcadas'), sg.Button(' - Remover', key='btn_remover_alcadas')],
                 [sg.Button('Salvar', key='btn_salvar_alcadas'), sg.Button('Cancelar', key='btn_cancelar_alcadas')]      
               ]
     
@@ -147,7 +147,13 @@ def telaAlcadas(parametrosGerais=False):
     while True:                
         eventos, valores = tela.read(timeout=0.1)
 
+        if eventos == 'ed_valor_alcada': 
+            if valores['ed_valor_alcada'] != '':                  
+                if valores['ed_valor_alcada'][-1] not in ('0123456789,.'):                                                
+                    tela['ed_valor_alcada'].update(valores['ed_valor_alcada'][:-1])
+
         if eventos == 'btn_salvar_alcadas':            
+            fichas_alcadas = dados
             tela.close()
 
             ## Salvar parametros no banco
@@ -254,7 +260,7 @@ def main():
 
     lista_outros = []
     lista_outros.append(sg.Text(text="Valor R$:", font=("Arial",10, "bold")))    
-    lista_outros.append(sg.Input(key="ed_outros_valor", size=(20,1), default_text='0,00', enable_events=True))        
+    lista_outros.append(sg.Input(key="ed_outros_valor", size=(20,1), default_text='0,00', enable_events=True ))        
     frame_outros = sg.Frame('Outros Valores', [lista_outros], expand_x=True, key='frame_outros')    
     
     ## Campos para defini~çao dos parâmetros padrão (Aba Parâmetros)    
@@ -521,12 +527,22 @@ def main():
                 if valores['ed_multa_perc'] != '':          
                     if valores['ed_multa_perc'][-1] not in ('0123456789,.'):                                                
                         tela['ed_multa_perc'].update(valores['ed_multa_perc'][:-1])
+
+            if eventos == 'ed_multa_perc_param': 
+                if valores['ed_multa_perc_param'] != '':          
+                    if valores['ed_multa_perc_param'][-1] not in ('0123456789,.'):                                                
+                        tela['ed_multa_perc_param'].update(valores['ed_multa_perc_param'][:-1])
             
             ## Tratamento para campos de valor não aceitar letras
             if eventos == 'ed_multa_valor': 
                 if valores['ed_multa_valor'] != '':          
                     if valores['ed_multa_valor'][-1] not in ('0123456789,.'):                                                
                         tela['ed_multa_valor'].update(valores['ed_multa_valor'][:-1]) 
+
+            if eventos == 'ed_multa_valor_param': 
+                if valores['ed_multa_valor_param'] != '':          
+                    if valores['ed_multa_valor_param'][-1] not in ('0123456789,.'):                                                
+                        tela['ed_multa_valor_param'].update(valores['ed_multa_valor_param'][:-1])
                         
             ## Tratamento para campos de valor não aceitar letras
             if eventos == 'ed_honorarios_perc': 
@@ -534,17 +550,32 @@ def main():
                     if valores['ed_honorarios_perc'][-1] not in ('0123456789,.'):                                                
                         tela['ed_honorarios_perc'].update(valores['ed_honorarios_perc'][:-1])
 
+            if eventos == 'ed_honorarios_perc_param': 
+                if valores['ed_honorarios_perc_param'] != '':          
+                    if valores['ed_honorarios_perc_param'][-1] not in ('0123456789,.'):                                                
+                        tela['ed_honorarios_perc_param'].update(valores['ed_honorarios_perc_param'][:-1])
+
             ## Tratamento para campos de valor não aceitar letras            
             if eventos == 'ed_honorarios_valor': 
                 if valores['ed_honorarios_valor'] != '':          
                     if valores['ed_honorarios_valor'][-1] not in ('0123456789,.'):                                                
                         tela['ed_honorarios_valor'].update(valores['ed_honorarios_valor'][:-1])
+
+            if eventos == 'ed_honorarios_valor_param': 
+                if valores['ed_honorarios_valor_param'] != '':          
+                    if valores['ed_honorarios_valor_param'][-1] not in ('0123456789,.'):                                                
+                        tela['ed_honorarios_valor_param'].update(valores['ed_honorarios_valor_param'][:-1])
                         
             ## Tratamento para campos de valor não aceitar letras
             if eventos == 'ed_outros_valor': 
                 if valores['ed_outros_valor'] != '':          
                     if valores['ed_outros_valor'][-1] not in ('0123456789,.'):                                                
                         tela['ed_outros_valor'].update(valores['ed_outros_valor'][:-1])
+
+            if eventos == 'ed_outros_valor_param': 
+                if valores['ed_outros_valor_param'] != '':          
+                    if valores['ed_outros_valor_param'][-1] not in ('0123456789,.'):                                                
+                        tela['ed_outros_valor_param'].update(valores['ed_outros_valor_param'][:-1])
 
             if eventos == 'btn_atualizar_importadas':                                                 
                 db     = f.conexao()
@@ -753,7 +784,7 @@ def main():
                                 totalMesesPrejuizo = (datetime.today().year - dados_cabecalho[0][9].year) * 12 + (
                                         datetime.today().month - dados_cabecalho[0][9].month)
                                 #Falta ler campo e colocar a taxa de juros da mora dinamicamente
-                                totalMorasAcumulado = totalMorasAcumulado + f.calcularJurosPrice(parcela[2], float(str(valores['ed_multa_perc']).replace(",",".")), totalMesesPrejuizo, False)
+                                totalMorasAcumulado = totalMorasAcumulado + f.calcularJurosPrice(parcela[2], 1, totalMesesPrejuizo, False)
 
                                 lancamentos.append({
                                     "data"      : parcela[1].strftime('%d/%m/%Y'),

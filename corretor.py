@@ -50,9 +50,8 @@ def converterPDF(vCaminho_arquivo):
 
         return vArquivo_final
     
-    except Exception as erro:
-        with open(vPath + '/ERRO_LOG.txt', 'a') as arquivo_txt:
-            arquivo_txt.write(str(erro))
+    except Exception as erro:        
+        f.gravalog('Falha ao tentar converter o PDF para txt. ' + str(erro), True)
     
         return None
     
@@ -83,6 +82,7 @@ def verificaLicenca():
         wrg.CloseKey(registry_key)
         return value
     except WindowsError:
+        f.gravalog('Falha ao tentar verificar licença do Registro do Windows', True)
         return None
     
 def licenca():
@@ -213,6 +213,13 @@ def main():
     informacoes        = '' 
     arquivo_importar   = ''
     remove_arquivo     = False    
+    
+    ip                 = f.pegarIp()         
+    internet           = f.testarInternet()
+    maquina            = f.pegarNomeMaquina() 
+    
+    versao_exe         = '1.0.0' 
+
     global tela
     global fichas_importadas
     global fichas_alcadas
@@ -221,7 +228,9 @@ def main():
         os.mkdir(vPath)
         os.mkdir(vPath + '/Processados')  
     
+    ## Monta o Layout da tela
     sg.theme('Reddit')
+    
     lista_arquivo = []
     lista_arquivo.append(sg.Input(key='-INPUT-', enable_events=True))
     lista_arquivo.append(sg.FileBrowse(button_text='Procurar', enable_events=True, key='arquivo'))
@@ -303,7 +312,7 @@ def main():
                 [frame_outros],                
                 [sg.Text(text='Aguardando Operação', key='ed_situacao', text_color="green")],
                 [sg.ProgressBar(100, orientation='h', size=(50, 4), key='progressbar', visible=False, expand_x=True)],
-                [sg.Button('Calcular'), sg.Button('Fechar'), sg.Text('Versão: 1.0.0', expand_x=True, justification='right', font=("Verdana",10))]      
+                [sg.Button('Calcular'), sg.Button('Fechar'), sg.Text('Host: ' + maquina + '   |   IP: '+ ip +'   |   '+ internet +'   |   Versão: ' + versao_exe, expand_x=True, justification='right', font=("Verdana",8))]      
              ]
     
     lista_filtros = []
@@ -331,6 +340,7 @@ def main():
                     [sg.Button('Salvar Parâmetros', key='btn_salvar_parametros_gerais'), sg.Button('Cancelar')]
                  ]
 
+    ## Cria as abas
     tabgrp = [
                 [sg.TabGroup
                     (
@@ -342,6 +352,7 @@ def main():
              ]  
     
 
+    ## Verifica se tem licença inserida no registro do windows
     busca_licena = verificaLicenca() 
     if ((busca_licena == None) or (busca_licena != 'THMPV-77D6F-94376-8HGKG-VRDRQ')):
         licenca()
@@ -362,6 +373,7 @@ def main():
             tela['btn_cancelar'].update(visible=False)
 
     def atualizaInfo():
+        ## Função para atualizar as informações do arquivo selecionado, que são exibidas no MEMO
         global informacoes
         informacoes = ''
         while True:                        
@@ -380,8 +392,10 @@ def main():
                 arquivo_tmp = caminho
 
             if identificaVersao(arquivo_tmp) == 'cresol':
+                ## Utiliza a mesma função de importar, porém, definido flag para True
                 dados = cresol.importar_cabecalho(arquivo_tmp, True)                
             else:
+                ## Utiliza a mesma função de importar, porém, definido flag para True
                 dados = sicredi.importaFichaGrafica(arquivo_tmp, True)                
 
             for l in dados:
@@ -395,6 +409,8 @@ def main():
             break
 
     def carregaParametros(tela):
+        ## Carrega os valores dos parametros do BD e alimenta os campos na tela
+
         parametros = f.carregaParametrosGerais()
 
         if parametros != None:
@@ -435,9 +451,12 @@ def main():
         for item in alcadas:
             fichas_alcadas.append(item)
    
+    ## Primeiro verifica a licença, depois abre tela do sistema
     busca_licena = verificaLicenca() 
     if (busca_licena == 'THMPV-77D6F-94376-8HGKG-VRDRQ'):                
-        tela = sg.Window('Corretor', tabgrp, size=(None,None))
+        f.gravalog('Iniciado - Licença Ok')
+        #Inicia o corretor
+        tela         = sg.Window('Corretor', tabgrp, size=(None,None))
         progress_bar = tela['progressbar']
 
         carregou_parametros = False
@@ -445,11 +464,10 @@ def main():
         while True:                
             eventos, valores = tela.read(timeout=0.1)
             
+            ## Carrega os parâmetros e alçadas padrão
             if carregou_parametros == False:
-                carregou_parametros  = carregaParametros(tela)
-                
+                carregou_parametros  = carregaParametros(tela)                
                 carregaAlcadasPadrao()
-
 
             if eventos is None or eventos == "Fechar":
                 break
@@ -457,14 +475,13 @@ def main():
             tela['ed_situacao'].update("Aguardando Operação")
             tela['ed_situacao'].update(text_color="Green")
             progress_bar.update(visible=False)
-            progress_bar.UpdateBar(0)
-            
-            #if eventos == '-abas-':        
-            #    print(valores)
+            progress_bar.UpdateBar(0)                        
 
+            ## Chamar tela das alçadas
             if eventos == 'btn_alcadas':                               
                 telaAlcadas()
 
+            ## Chamar tela alçadas padrão(parâmetros)
             if eventos == 'btn_alcadas_padrao':                               
                 telaAlcadas(True)
 
@@ -474,9 +491,11 @@ def main():
                 carregaAlcadasPadrao()
                 atualizaTxtTitulo('Vazio')
 
+            ## Clique duplo sobre item da lista
             if '+CLICKED+' in eventos:
                 id_ficha_grafica = fichas_importadas[valores['-TABLE-'][0]][0]
 
+                ## Se for uma ficha já importada, carrega os valores utilizados nessa ficha
                 if id_ficha_grafica > 0:
                     parametros_ficha = f.carregaParametrosFichaGrafica(id_ficha_grafica)
                     dados_ficha      = f.carregaDadosCabecalhoFichaGrafica(id_ficha_grafica)
@@ -528,6 +547,7 @@ def main():
                     if valores['ed_multa_perc'][-1] not in ('0123456789,.'):                                                
                         tela['ed_multa_perc'].update(valores['ed_multa_perc'][:-1])
 
+            ## Tratamento para campos de valor não aceitar letras
             if eventos == 'ed_multa_perc_param': 
                 if valores['ed_multa_perc_param'] != '':          
                     if valores['ed_multa_perc_param'][-1] not in ('0123456789,.'):                                                
@@ -539,6 +559,7 @@ def main():
                     if valores['ed_multa_valor'][-1] not in ('0123456789,.'):                                                
                         tela['ed_multa_valor'].update(valores['ed_multa_valor'][:-1]) 
 
+            ## Tratamento para campos de valor não aceitar letras
             if eventos == 'ed_multa_valor_param': 
                 if valores['ed_multa_valor_param'] != '':          
                     if valores['ed_multa_valor_param'][-1] not in ('0123456789,.'):                                                
@@ -550,6 +571,7 @@ def main():
                     if valores['ed_honorarios_perc'][-1] not in ('0123456789,.'):                                                
                         tela['ed_honorarios_perc'].update(valores['ed_honorarios_perc'][:-1])
 
+            ## Tratamento para campos de valor não aceitar letras
             if eventos == 'ed_honorarios_perc_param': 
                 if valores['ed_honorarios_perc_param'] != '':          
                     if valores['ed_honorarios_perc_param'][-1] not in ('0123456789,.'):                                                
@@ -561,6 +583,7 @@ def main():
                     if valores['ed_honorarios_valor'][-1] not in ('0123456789,.'):                                                
                         tela['ed_honorarios_valor'].update(valores['ed_honorarios_valor'][:-1])
 
+            ## Tratamento para campos de valor não aceitar letras
             if eventos == 'ed_honorarios_valor_param': 
                 if valores['ed_honorarios_valor_param'] != '':          
                     if valores['ed_honorarios_valor_param'][-1] not in ('0123456789,.'):                                                
@@ -572,6 +595,7 @@ def main():
                     if valores['ed_outros_valor'][-1] not in ('0123456789,.'):                                                
                         tela['ed_outros_valor'].update(valores['ed_outros_valor'][:-1])
 
+            ## Tratamento para campos de valor não aceitar letras
             if eventos == 'ed_outros_valor_param': 
                 if valores['ed_outros_valor_param'] != '':          
                     if valores['ed_outros_valor_param'][-1] not in ('0123456789,.'):                                                
@@ -581,11 +605,13 @@ def main():
                 db     = f.conexao()
                 cursor = db.cursor()
                 
+                ## Filtro Titulo
                 if valores['ed_filtro_titulo'] != '':
                     v_titulo_filtro = ' AND titulo like "%' + valores['ed_filtro_titulo'] + '%" '
                 else:
                     v_titulo_filtro = ''
                     
+                ## Filtro Associado
                 if valores['ed_filtro_associado'] != '':
                     v_associado_filtro = ' AND associado like "%' + valores['ed_filtro_associado'] + '%" '
                 else:
@@ -602,6 +628,7 @@ def main():
                 for ficha in dados:                                        
                     fichas_importadas.append(ficha)                    
                     
+                ## Atualiza valores da lista
                 tela['-TABLE-'].update(values = fichas_importadas)    
                 
                 cursor.close()
@@ -647,7 +674,8 @@ def main():
                        carregaParametros(tela)
                        sg.popup('Parâmetros definidos com sucesso!')
                 except Exception as erro:
-                    sg.popup('Ocorreu um erro ao tentar salvar. ' + str(erro))                    
+                    sg.popup('Ocorreu um erro ao tentar salvar. ' + str(erro))    
+                    f.gravalog('Falha ao tentar salvar os parâmetros. ' + str(erro), True)                
             
             if eventos == 'Calcular':
                 ## Aqui colocar validações dos campos
@@ -686,18 +714,18 @@ def main():
                     voutros_valor = float(voutros_valor)
                 
                 parametros = {
-                    'igpm'             : valores['ed_igpm'],
-                    'ipca'             : valores['ed_ipca'],
-                    'cdi'              : valores['ed_cdi'],
-                    'inpc'             : valores['ed_inpc'],
-                    'tr'               : valores['ed_tr'],
-                    'multa_perc'       : vmulta_perc,
-                    'multa_valor'      : vmulta_valor,
-                    'multa_incidencia' : vincidencia,
-                    'honorarios_perc'  : vhonorarios_perc,
-                    'honorarios_valor' : vhonorarios_valor,
-                    'outros_valor'     : voutros_valor
-                }    
+                                'igpm'             : valores['ed_igpm'],
+                                'ipca'             : valores['ed_ipca'],
+                                'cdi'              : valores['ed_cdi'],
+                                'inpc'             : valores['ed_inpc'],
+                                'tr'               : valores['ed_tr'],
+                                'multa_perc'       : vmulta_perc,
+                                'multa_valor'      : vmulta_valor,
+                                'multa_incidencia' : vincidencia,
+                                'honorarios_perc'  : vhonorarios_perc,
+                                'honorarios_valor' : vhonorarios_valor,
+                                'outros_valor'     : voutros_valor
+                             }    
                 
                 progress_bar.update(visible=True)
                 progress_bar.UpdateBar(50)
@@ -836,12 +864,16 @@ def main():
                         convert(path_destino + '/' + tipo + '.docx', path_destino + '/' + tipo + '.pdf')
                         os.remove(path_destino + '/' + tipo + '.docx')
                         
-                        progress_bar.UpdateBar(96)                                                
+                        path_final = os.path.realpath(path_destino)
+                        os.startfile(path_final)
+                        
+                        progress_bar.UpdateBar(100)                                                
                     try:
                         if remove_arquivo:
                             os.remove(arquivo_importar)
-                    except:
+                    except Exception as erro:
                         sg.popup('Falha ao tentar remover o arquivo txt temporário.')    
+                        f.gravalog('Falha ao tentar remover o arquivo txt temporário(Conversão PDF para Txt). ' + str(erro))
 
                     progress_bar.UpdateBar(100)
                     sg.popup('Processo Finalizado')

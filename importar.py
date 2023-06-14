@@ -1,6 +1,7 @@
 import funcoes as f
 from datetime import datetime, date, timedelta
 import re
+
 def pegaParcelaLinha(linha):
     if linha != '':
         capturado = linha[116:134].replace(" ", "")
@@ -146,6 +147,12 @@ def pegaDataLiberacaoLinha(linha):
     return data_final
 
 def importaFichaGrafica(vCaminhoTxt, informacoes=False):
+
+    if informacoes:
+        f.gravalog('Inicia Importação das Informações Sicredi. Arquivo: ' + str(vCaminhoTxt))
+    else:
+        f.gravalog('Inicia Importação Cabeçalho Sicredi. Arquivo: ' + str(vCaminhoTxt))
+
     global valor_financiado        
         
     taxa_juro        = 0    
@@ -198,8 +205,8 @@ def importaFichaGrafica(vCaminhoTxt, informacoes=False):
                 liberacao = pegaDataLiberacaoLinha(linha)
 
             if dataEntradaPrejuizo is None:
-                vparcela = parcela
-                if ((nro_parcelas==1) and (parcela == nro_parcelas)):
+                vparcela = parcela                
+                if (parcela == nro_parcelas):
                     vparcela = parcela -1
                 dataEntradaPrejuizo = pegaDataVencimentoParcela(linha, vparcela)
 
@@ -228,10 +235,13 @@ def importaFichaGrafica(vCaminhoTxt, informacoes=False):
         db.commit()
 
         if cursor.rowcount > 0:        
-            print('Cabeçalho Ficha Gráfica Sicredi importado com sucesso!')
+            f.gravalog('Cabeçalho Ficha Gráfica Sicredi importado com sucesso. Id: ' + str(cursor.lastrowid))
             return cursor.lastrowid
 
 def importaFichaGraficaDetalhe(vArquivoTxt, id_ficha_grafica):
+
+    f.gravalog('Inicia importação dos Detalhes da Ficha Gráfica Sicredi. Id: ' + str(id_ficha_grafica))
+
     global valor_financiado        
         
     data            = datetime.now()
@@ -290,7 +300,7 @@ def importaFichaGraficaDetalhe(vArquivoTxt, id_ficha_grafica):
                 vlinha = vlinha + 1
     db.commit()
     if cursor.rowcount > 0:
-        print('Detalhe Ficha Gráfica Sicredi importado com sucesso!')
+        f.gravalog('Detalhe Ficha Gráfica Sicredi importado com sucesso. Id: ' + str(id_ficha_grafica))        
 
     return titulo
             

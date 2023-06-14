@@ -1,8 +1,10 @@
-import json
 import MySQLdb
 import constantes as c
 import locale
 from datetime import datetime
+import socket
+import requests
+import os
 
 def conexao():
     #return MySQLdb.connect(host="10.4.21.24", user='root', passwd='*Sicred1',db='db_teste')
@@ -254,7 +256,83 @@ def calculaPrice(valorEmprestimo, nroParcelas, taxaJuros):
     print(f'Total Devedor Emprestimo {valorEmprestimo}')
     print(f'Total pago {vTotalJurosAcumulado + vTotalCapitalAmortizado}')
 
+def pegarIp():
+    try:
+        return socket.gethostbyname(socket.gethostname())
+    except:
+        return '0.0.0.0'
+    
+def pegarNomeMaquina():
+    try:
+        return socket.gethostname()
+    except:
+        return 'Máquina não identificada'
+    
+def testarInternet():
+    #Checar conexão de internet
+    url = 'http://www.google.com.br'
+    timeout = 5
+    try:
+        requests.get(url, timeout=timeout)
+        return 'Conectado'
+    except:
+        return 'Sem Conexão com a Internet'
 
+def pastaExiste(vLocal, vCriarDiretorio=False):
+    if vCriarDiretorio:
+        try:
+            if os.path.isdir(vLocal):
+                return True
+            else:
+                os.makedirs(vLocal)
+                return True
+        except Exception as e:            
+            return False
+    else:
+        return os.path.isdir(vLocal)
+
+def gravalog(msg, is_erro=False):
+    maquina = pegarNomeMaquina()
+    ip      = pegarIp()
+
+    try:
+        if is_erro:
+            vtipo = 'ERRO'
+            vmensagem = f'\n{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}    ERRO: {str(msg)}'
+        else:
+            vtipo = 'INFO'
+            vmensagem = f'\n{datetime.now().strftime("%m/%d/%Y %H:%M:%S")}    INFO: {str(msg)}'
+            
+        vNome    = datetime.now().strftime("%d-%m-%Y") + '_log.txt'
+        vLocal   = 'C:\Temp\Corretor_Monetario_Logs'
+        pastaExiste(vLocal, True)
+        vArquivo = f'{vLocal}\{vNome}'
+
+        if os.path.isfile(vArquivo):
+            with open(vArquivo, 'a') as log:
+                log.write(vmensagem)
+        else:
+            with open(vArquivo, 'w') as log:
+                log.write(vmensagem)
+                        
+        try:
+            vconexao = conexao()
+            cursor  = vconexao.cursor()  
+                                                            
+            vparametros = (str(datetime.now().strftime("%Y-%m-%d %H:%M:%S")), str(vtipo), 'Corretor Monetário', str(msg), str(maquina), str(ip))
+            
+            cursor.execute('INSERT INTO logs(data_hora,tipo,sistema,descricao,host,ip) VALUES(%s,%s,%s,%s,%s,%s)',vparametros)    
+            vconexao.commit()
+
+            cursor.close()
+            vconexao.close()  
+        except Exception as erro:
+            print('Falha ao tentar gravar log no Db. ' + str(erro))
+    
+        print(vmensagem)
+    except Exception as erro:
+        log('Falha ao tentar gravar log na pasta Temp. ' + str(erro)) 
+    
 #dados = carregaIndice('igpm', 2022, 3)
 
 def calcularJurosPrice(valorParcela, txJuro, totalMeses, composto=True):

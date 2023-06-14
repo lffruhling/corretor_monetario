@@ -32,7 +32,14 @@ tipo             = ''
 valor_credito    = 0
 valor_debito     = 0
 
-def importar_cabecalho(vArquivoTxt, informacoes=False):    
+def importar_cabecalho(vArquivoTxt, informacoes=False): 
+
+    if vArquivoTxt != '':
+        if informacoes:
+            f.gravalog('Inicia Importação Informações Cresol. Arquivo: ' + str(vArquivoTxt))    
+        else:
+            f.gravalog('Inicia Importação Cabeçalho Cresol. Arquivo: ' + str(vArquivoTxt))    
+
     global titulo
     global modalidade_amortizacao
     with open(vArquivoTxt, 'r') as arquivo:        
@@ -139,6 +146,9 @@ def importar_cabecalho(vArquivoTxt, informacoes=False):
             return cursor.lastrowid
 
 def importar_detalhes(vArquivoTxt, titulo, id_ficha_grafica):    
+
+    f.gravalog('Inicia importação dos Detalhes da Ficha Gráfica Cresol. Id: ' + str(id_ficha_grafica))
+
     global vLinhaLancamento        
     global parcela
     global data_vencimento
@@ -246,7 +256,7 @@ def importar_detalhes(vArquivoTxt, titulo, id_ficha_grafica):
 
     db.commit()
     if cursor.rowcount > 0:
-        print('Detalhe Ficha Gráfica Cresol importado com sucesso!')
+        f.gravalog('Detalhe Ficha Gráfica Cresol importado com sucesso. Id: ' + str(id_ficha_grafica) )
     
 def importarCresol(vArquivoTxt, parametros):
     print('Importando arquivo: ' + str(vArquivoTxt))

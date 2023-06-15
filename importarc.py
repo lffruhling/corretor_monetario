@@ -1,5 +1,6 @@
 from datetime import datetime
 import funcoes as f
+import time
 
 vLinhaLancamento = False
 vParcelas        = 0
@@ -203,12 +204,18 @@ def importar_detalhes(vArquivoTxt, titulo, id_ficha_grafica):
 
                 ## Fatia o restante da string para montar a descrição, removendo os valores
                 texto = linha_atual[4].split(' ')
-                #print(str(texto))
+                #print('texto: ' + str(texto))
                     
                 for posicao in texto:                        
                     try:
-                        texto_          = posicao.replace('.','')                            
-                        valor_capturado = float(texto_.replace(',','.'))
+                        if(("." in posicao)or("," in posicao)):
+                            texto_          = posicao.replace('.','')                            
+                            valor_capturado = float(texto_.replace(',','.'))
+                        else:
+                            if descricao != '':
+                                descricao = descricao + ' ' + str(posicao)
+                            else:
+                                descricao = str(posicao)    
                     except:                                                        
                         if descricao != '':
                             descricao = descricao + ' ' + str(posicao)
@@ -216,15 +223,22 @@ def importar_detalhes(vArquivoTxt, titulo, id_ficha_grafica):
                             descricao = str(posicao)
                 
                 descricao = descricao[:-2]
+                #print('Descrição: ' + descricao)
                 
                 ## Cria variavel removendo o texto da descrição para sobrar apenas os valores para fatiar
                 string_valores = linha_atual[4].replace(descricao, "").split(' ')
-                #print(str(string_valores))
+                #print('String dos valores: ' + str(string_valores))
                 
                 ## Captura valor, substitui virgulas por ponto, converte em float
-                str_valor = string_valores[0].replace('.','')
-                str_valor = str_valor.replace(',','.')
-                valor     = float(str_valor)
+                try:
+                    str_valor = string_valores[0].replace('.','')
+                    str_valor = str_valor.replace(',','.')
+                    valor     = float(str_valor)
+                except Exception as erro:
+                    print('Valor Capturado: ' + str(str_valor) + '\n')
+                    print('Linha: ' + str(linha) + '\n')
+                    print('Linha Atual: ' + str(linha_atual) + '\n')
+                    print(str(erro))
                 
                 ## Captura saldo, substitui virgulas por ponto, converte em float
                 str_saldo = string_valores[2].replace('.','')

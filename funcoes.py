@@ -207,13 +207,12 @@ def carregaIndice(tabela, ano, mes):
         resultado = cursor.fetchall()
 
         if len(resultado) > 0:
-            valor = str(resultado[0][0]*100)
+            valor = str(resultado[0][0])
             return round(float(valor),2)
-        else:
-            print('Sem resultados')
+        else:            
             return 0
     except Exception as erro:
-        print('Ocorreu um erro ao tentar carregar o indice ' + str(tabela) + '. ' + str(erro))
+        gravalog('Ocorreu um erro ao tentar carregar o indice ' + str(tabela) + '. ' + str(erro), True)        
 
 def calculaPrice(valorEmprestimo, nroParcelas, taxaJuros):
         
@@ -333,6 +332,21 @@ def gravalog(msg, is_erro=False):
     except Exception as erro:
         log('Falha ao tentar gravar log na pasta Temp. ' + str(erro)) 
     
+def BuscaUltimaVersao():
+    try:
+        db = conexao()
+        cursor = db.cursor()
+        cursor.execute("SELECT versao FROM versao order by id desc limit 1")
+        resultado = cursor.fetchall()
+
+        if len(resultado) > 0:
+            valor = str(resultado[0][0])
+            return valor
+        else:            
+            return None
+    except Exception as erro:
+        gravalog('Ocorreu um erro ao tentar carregar a última versão gerada. '  + str(erro), True)     
+
 #dados = carregaIndice('igpm', 2022, 3)
 
 def calcularJurosPrice(valorParcela, txJuro, totalMeses, composto=True):

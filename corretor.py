@@ -220,6 +220,12 @@ def main():
     
     versao_exe         = '1.0.0' 
 
+    ultima_versao = f.BuscaUltimaVersao()
+
+    versao_descricao = 'Atualizado'
+    if(versao_exe != ultima_versao):
+        versao_descricao = 'Atualização Disponível'
+
     global tela
     global fichas_importadas
     global fichas_alcadas
@@ -312,7 +318,7 @@ def main():
                 [frame_outros],                
                 [sg.Text(text='Aguardando Operação', key='ed_situacao', text_color="green")],
                 [sg.ProgressBar(100, orientation='h', size=(50, 4), key='progressbar', visible=False, expand_x=True)],
-                [sg.Button('Calcular'), sg.Button('Fechar'), sg.Text('Host: ' + maquina + '   |   IP: '+ ip +'   |   '+ internet +'   |   Versão: ' + versao_exe, expand_x=True, justification='right', font=("Verdana",8))]      
+                [sg.Button('Calcular'), sg.Button('Fechar'), sg.Text('Host: ' + maquina + '   |   IP: '+ ip +'   |   '+ internet +'   |   Versão: ' + versao_exe + ' - ' + versao_descricao, expand_x=True, justification='right', font=("Verdana",8))]      
              ]
     
     lista_filtros = []
@@ -492,50 +498,53 @@ def main():
                 atualizaTxtTitulo('Vazio')
 
             ## Clique duplo sobre item da lista
-            if '+CLICKED+' in eventos:
-                id_ficha_grafica = fichas_importadas[valores['-TABLE-'][0]][0]
+            if '+CLICKED+' in eventos:                
+                try:
+                    id_ficha_grafica = fichas_importadas[valores['-TABLE-'][0]][0]
 
-                ## Se for uma ficha já importada, carrega os valores utilizados nessa ficha
-                if id_ficha_grafica > 0:
-                    parametros_ficha = f.carregaParametrosFichaGrafica(id_ficha_grafica)
-                    dados_ficha      = f.carregaDadosCabecalhoFichaGrafica(id_ficha_grafica)
-                    
-                    alcadas_ficha    = f.carregarFichaAlcadas(id_ficha_grafica)
-                    fichas_alcadas   = []
-                    for item in alcadas_ficha:
-                        fichas_alcadas.append(item)
-                    #print(dados_ficha)
-
-                    informacoes = ''
-                    informacoes = informacoes + 'Coop: ' + dados_ficha[1] + '   ' + 'Modalidade: ' + dados_ficha[9]
-                    informacoes = informacoes + '\n' + 'Associado: ' + dados_ficha[2] + '\n'
-                    informacoes = informacoes + 'Data de Liberação: ' + dados_ficha[8].strftime("%d/%m/%Y") + '\n'
-                    informacoes = informacoes + 'Número de Parcelas: ' + str(dados_ficha[3]) + '\n'
-                    informacoes = informacoes + 'Parcela Atual: ' + str(dados_ficha[4]) + '\n'
-                    informacoes = informacoes + 'Título: ' + dados_ficha[0] + '\n'
-                    informacoes = informacoes + 'Taxa de Juros: ' + str(dados_ficha[6]) + '\n'
-                    informacoes = informacoes + 'Valor Financiado: ' + str(dados_ficha[5])
-                    tela['ed_informacoes'].update(informacoes)
-
-                    if dados_ficha != []:
-                        tela['ed_igpm'].update(parametros_ficha[0])
-                        tela['ed_ipca'].update(parametros_ficha[1])
-                        tela['ed_cdi'].update(parametros_ficha[2])
-                        tela['ed_inpc'].update(parametros_ficha[3])
-                        tela['ed_tr'].update(parametros_ficha[4])
-
-                        tela['ed_multa_perc'].update(parametros_ficha[5])
-                        tela['ed_multa_valor'].update(parametros_ficha[6])
-                        tela['ed_multa_incidencia'].update(parametros_ficha[7])
+                    ## Se for uma ficha já importada, carrega os valores utilizados nessa ficha
+                    if id_ficha_grafica > 0:
+                        parametros_ficha = f.carregaParametrosFichaGrafica(id_ficha_grafica)
+                        dados_ficha      = f.carregaDadosCabecalhoFichaGrafica(id_ficha_grafica)
                         
-                        tela['ed_honorarios_perc'].update(parametros_ficha[8])
-                        tela['ed_honorarios_valor'].update(parametros_ficha[9])
-                        tela['ed_outros_valor'].update(parametros_ficha[10])
+                        alcadas_ficha    = f.carregarFichaAlcadas(id_ficha_grafica)
+                        fichas_alcadas   = []
+                        for item in alcadas_ficha:
+                            fichas_alcadas.append(item)
+                        #print(dados_ficha)
 
-                        tela['-INPUT-'].update("")
+                        informacoes = ''
+                        informacoes = informacoes + 'Coop: ' + dados_ficha[1] + '   ' + 'Modalidade: ' + dados_ficha[9]
+                        informacoes = informacoes + '\n' + 'Associado: ' + dados_ficha[2] + '\n'
+                        informacoes = informacoes + 'Data de Liberação: ' + dados_ficha[8].strftime("%d/%m/%Y") + '\n'
+                        informacoes = informacoes + 'Número de Parcelas: ' + str(dados_ficha[3]) + '\n'
+                        informacoes = informacoes + 'Parcela Atual: ' + str(dados_ficha[4]) + '\n'
+                        informacoes = informacoes + 'Título: ' + dados_ficha[0] + '\n'
+                        informacoes = informacoes + 'Taxa de Juros: ' + str(dados_ficha[6]) + '\n'
+                        informacoes = informacoes + 'Valor Financiado: ' + str(dados_ficha[5])
+                        tela['ed_informacoes'].update(informacoes)
 
-                    atualizaTxtTitulo(str(dados_ficha[0]), True)
-                    tela['aba_principal'].select()
+                        if dados_ficha != []:
+                            tela['ed_igpm'].update(parametros_ficha[0])
+                            tela['ed_ipca'].update(parametros_ficha[1])
+                            tela['ed_cdi'].update(parametros_ficha[2])
+                            tela['ed_inpc'].update(parametros_ficha[3])
+                            tela['ed_tr'].update(parametros_ficha[4])
+
+                            tela['ed_multa_perc'].update(parametros_ficha[5])
+                            tela['ed_multa_valor'].update(parametros_ficha[6])
+                            tela['ed_multa_incidencia'].update(parametros_ficha[7])
+                            
+                            tela['ed_honorarios_perc'].update(parametros_ficha[8])
+                            tela['ed_honorarios_valor'].update(parametros_ficha[9])
+                            tela['ed_outros_valor'].update(parametros_ficha[10])
+
+                            tela['-INPUT-'].update("")
+
+                        atualizaTxtTitulo(str(dados_ficha[0]), True)
+                        tela['aba_principal'].select()
+                except:
+                    print('Nenhum id selecionado')
 
             if eventos == '-INPUT-':
                 carregaParametros(tela)
@@ -678,6 +687,15 @@ def main():
                     f.gravalog('Falha ao tentar salvar os parâmetros. ' + str(erro), True)                
             
             if eventos == 'Calcular':
+
+                ## ALÇADAS
+
+                ## As alçadas definidas e que serão utilizadas no cálculo da ficha estão carregadas em memória
+                ## ou seja, estão no array global "fichas_alcadas", entao para sabermos se existe e quais são as alçadas
+                ## terá que ser feito um laço no array. 
+                # fichas_alcadas    
+
+
                 ## Aqui colocar validações dos campos
 
                 vincidencia = valores['ed_multa_incidencia']

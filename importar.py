@@ -186,6 +186,9 @@ def importaFichaGrafica(vCaminhoTxt, informacoes=False):
                 if("SAV" in linha):
                     modalidade_amortizacao = 'SAV'
 
+                if("SPV" in linha):
+                    modalidade_amortizacao = 'SPV'
+
             if("TX JR NORMAL" in linha):
                 taxa_juro = pegaTxJuroLinha(linha)
                 

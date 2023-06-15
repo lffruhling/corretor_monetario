@@ -67,6 +67,10 @@ def identificaVersao(caminho_txt):
                 if("COOP CRED POUP E INVEST" in linha):
                     return 'sicredi'
                     break
+
+                if("COOP.CRED.POUP.INVESTIMENTO CONEXAO" in linha):
+                    return 'sicredi'
+                    break
             else:
                 break 
             

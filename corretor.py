@@ -16,9 +16,6 @@ from docx2pdf import convert
 #Interface
 import PySimpleGUI as sg
 
-#registro windows
-import winreg as wrg
-
 vPath    = 'C:/Temp/Fichas_Graficas'
 versao   = ''
 lancamentos       = []
@@ -53,78 +50,8 @@ def converterPDF(vCaminho_arquivo):
     except Exception as erro:        
         f.gravalog('Falha ao tentar converter o PDF para txt. ' + str(erro), True)
     
-        return None
+        return None    
     
-def identificaVersao(caminho_txt):
-    with open(caminho_txt, 'r') as arquivo_txt:        
-        vlinha = 1
-        for linha in arquivo_txt:
-            if vlinha <= 20:
-                if("CRESOL" in linha):
-                    return 'cresol'
-                    break
-
-                if("COOP CRED POUP E INVEST" in linha):
-                    return 'sicredi'
-                    break
-
-                if("COOP.CRED.POUP.INVESTIMENTO CONEXAO" in linha):
-                    return 'sicredi'
-                    break
-            else:
-                break 
-            
-            vlinha = vlinha + 1
-    
-    return versao
-
-def verificaLicenca():
-    try:
-        registry_key = wrg.OpenKey(wrg.HKEY_CURRENT_USER, r"SOFTWARE\\CorretorMonetario", 0,
-                                       wrg.KEY_READ)
-        value, regtype = wrg.QueryValueEx(registry_key, "Chave")
-        wrg.CloseKey(registry_key)
-        return value
-    except WindowsError:
-        f.gravalog('Falha ao tentar verificar licença do Registro do Windows', True)
-        return None
-    
-def licenca():
-
-    local = wrg.HKEY_CURRENT_USER            
-    soft  = wrg.OpenKeyEx(local, r"SOFTWARE\\")
-  
-
-    sg.theme('Reddit')
-
-    layout_ativar = [    
-                [sg.Text(text='Chave de Ativação', text_color="BLACK", font=("Arial"))],                                        
-                [sg.Text(text='Insira a chave para ativa o produto: ', text_color="BLACK", font=("Arial",10))],                      
-                [sg.InputText(key='ed_chave')],                
-                [sg.Button('Registrar'), sg.Button('Fechar')]      
-             ]
-    tela_ativar = sg.Window('Ativar Produto', layout_ativar, modal=True)
-
-    while True:                    
-        eventos, valores = tela_ativar.read(timeout=0.1)
-        
-        if eventos == 'Registrar':            
-            valor = valores['ed_chave']            
-            key_1 = wrg.CreateKey(soft, "CorretorMonetario")
-                        
-            wrg.SetValueEx(key_1, "Chave", 0, wrg.REG_SZ,
-                        valor)            
-            
-            if key_1:
-                wrg.CloseKey(key_1)
-
-            tela_ativar.Close()
-
-        if eventos == sg.WINDOW_CLOSED:
-            break
-        if eventos == 'Fechar':
-            tela_ativar.close()       
-
 def telaAlcadas(parametrosGerais=False):       
     global fichas_alcadas 
 
@@ -221,12 +148,11 @@ def main():
     ip                 = f.pegarIp()         
     internet           = f.testarInternet()
     maquina            = f.pegarNomeMaquina() 
+    ultima_versao      = f.BuscaUltimaVersao()
     
     versao_exe         = '1.0.0' 
-
-    ultima_versao = f.BuscaUltimaVersao()
-
-    versao_descricao = 'Atualizado'
+    
+    versao_descricao   = 'Atualizado'
     if(versao_exe != ultima_versao):
         versao_descricao = 'Atualização Disponível'
 
@@ -312,6 +238,7 @@ def main():
     lista_outros_parametros.append(sg.Input(key="ed_outros_valor_param", size=(20,1), default_text='0,00', enable_events=True))        
     frame_outros_parametros = sg.Frame('Outros Valores', [lista_outros_parametros], expand_x=True)     
     
+    ## Itens da aba Principal
     principal = [    
                 [sg.Text(text='Corretor Monetário', text_color="Black", font=("Arial",22, "bold"), expand_x=True, justification='center')],                                      
                 [frame_arquivo],      
@@ -325,6 +252,7 @@ def main():
                 [sg.Button('Calcular'), sg.Button('Fechar'), sg.Text('Host: ' + maquina + '   |   IP: '+ ip +'   |   '+ internet +'   |   Versão: ' + versao_exe + ' - ' + versao_descricao, expand_x=True, justification='right', font=("Verdana",8))]      
              ]
     
+    ## Itens da aba Importadas
     lista_filtros = []
     lista_filtros.append(sg.Text("Título"))
     lista_filtros.append(sg.Input(key="ed_filtro_titulo", size=(20,1), enable_events=True))
@@ -338,6 +266,7 @@ def main():
                     [sg.Table(values=fichas_importadas, headings=['ID', 'Título', 'Versão', 'Associado', 'N° Parcelas', 'Valor Financiado', 'Taxa Juros'], auto_size_columns=True, display_row_numbers=False, justification='center', key='-TABLE-', selected_row_colors='red on yellow', enable_events=True, expand_x=True, expand_y=True,enable_click_events=True)]                    
                  ]    
 
+    ## Itens da aba Parâmetros
     parametros = [    
                     [sg.Text(text='Parâmetros', text_color="black", font=("Arial",12), expand_x=True, justification='center')],                                        
                     [sg.Text(text='Parâmetros Padrão do Sistema', text_color="black", font=("Arial",9), expand_x=True, justification='left')],
@@ -363,9 +292,9 @@ def main():
     
 
     ## Verifica se tem licença inserida no registro do windows
-    busca_licena = verificaLicenca() 
+    busca_licena = f.verificaLicenca() 
     if ((busca_licena == None) or (busca_licena != 'THMPV-77D6F-94376-8HGKG-VRDRQ')):
-        licenca()
+        f.licenca()
 
     def atualizaTxtTitulo(texto, green=False):
         tela['txt_titulo'].update(texto)
@@ -401,7 +330,7 @@ def main():
             else:
                 arquivo_tmp = caminho
 
-            if identificaVersao(arquivo_tmp) == 'cresol':
+            if f.identificaVersao(arquivo_tmp) == 'cresol':
                 ## Utiliza a mesma função de importar, porém, definido flag para True
                 dados = cresol.importar_cabecalho(arquivo_tmp, True)                
             else:
@@ -462,7 +391,7 @@ def main():
             fichas_alcadas.append(item)
    
     ## Primeiro verifica a licença, depois abre tela do sistema
-    busca_licena = verificaLicenca() 
+    busca_licena = f.verificaLicenca() 
     if (busca_licena == 'THMPV-77D6F-94376-8HGKG-VRDRQ'):                
         f.gravalog('Iniciado - Licença Ok')
         #Inicia o corretor
@@ -735,6 +664,7 @@ def main():
                     voutros_valor = valores['ed_outros_valor'].replace(',','.')
                     voutros_valor = float(voutros_valor)
                 
+                ## Armazena os valores dos parâmetros utilizados para depois salvar no bd para ter o histórico
                 parametros = {
                                 'igpm'             : valores['ed_igpm'],
                                 'ipca'             : valores['ed_ipca'],
@@ -749,12 +679,14 @@ def main():
                                 'outros_valor'     : voutros_valor
                              }    
                 
+                ## Atualiza interface
                 progress_bar.update(visible=True)
-                progress_bar.UpdateBar(50)
-
+                progress_bar.UpdateBar(50)                
                 tela['ed_situacao'].update("Processando Arquivo... Aguarde...")
                 tela['ed_situacao'].update(text_color="Blue")
                 eventos, valores = tela.read(timeout=1)
+                                
+                ## Quando é um pdf, converte para para txt, no final exclui o txt
                 remove_arquivo = False
 
                 if valores['arquivo'] != '':
@@ -785,7 +717,7 @@ def main():
                     if arquivo_importar != None:
                         
                         progress_bar.UpdateBar(50)
-                        if identificaVersao(arquivo_importar) == 'sicredi':
+                        if f.identificaVersao(arquivo_importar) == 'sicredi':
                             versao   = 'sicredi'
                             retorno  = sicredi.importarSicredi(arquivo_importar, parametros)
                             titulo   = retorno[0]

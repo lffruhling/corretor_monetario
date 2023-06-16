@@ -5,6 +5,8 @@ from datetime import datetime
 import socket
 import requests
 import os
+import winreg as wrg
+import PySimpleGUI as sg
 
 def conexao():
     #return MySQLdb.connect(host="10.4.21.24", user='root', passwd='*Sicred1',db='db_teste')
@@ -345,7 +347,78 @@ def BuscaUltimaVersao():
         else:            
             return None
     except Exception as erro:
-        gravalog('Ocorreu um erro ao tentar carregar a última versão gerada. '  + str(erro), True)     
+        gravalog('Ocorreu um erro ao tentar carregar a última versão gerada. '  + str(erro), True)   
+
+def verificaLicenca():
+    try:
+        registry_key = wrg.OpenKey(wrg.HKEY_CURRENT_USER, r"SOFTWARE\\CorretorMonetario", 0,
+                                       wrg.KEY_READ)
+        value, regtype = wrg.QueryValueEx(registry_key, "Chave")
+        wrg.CloseKey(registry_key)
+        return value
+    except WindowsError:
+        gravalog('Falha ao tentar verificar licença do Registro do Windows', True)
+        return None  
+    
+def licenca():
+
+    local = wrg.HKEY_CURRENT_USER            
+    soft  = wrg.OpenKeyEx(local, r"SOFTWARE\\")
+  
+
+    sg.theme('Reddit')
+
+    layout_ativar = [    
+                [sg.Text(text='Chave de Ativação', text_color="BLACK", font=("Arial"))],                                        
+                [sg.Text(text='Insira a chave para ativa o produto: ', text_color="BLACK", font=("Arial",10))],                      
+                [sg.InputText(key='ed_chave')],                
+                [sg.Button('Registrar'), sg.Button('Fechar')]      
+             ]
+    tela_ativar = sg.Window('Ativar Produto', layout_ativar, modal=True)
+
+    while True:                    
+        eventos, valores = tela_ativar.read(timeout=0.1)
+        
+        if eventos == 'Registrar':            
+            valor = valores['ed_chave']            
+            key_1 = wrg.CreateKey(soft, "CorretorMonetario")
+                        
+            wrg.SetValueEx(key_1, "Chave", 0, wrg.REG_SZ,
+                        valor)            
+            
+            if key_1:
+                wrg.CloseKey(key_1)
+
+            tela_ativar.Close()
+
+        if eventos == sg.WINDOW_CLOSED:
+            break
+        if eventos == 'Fechar':
+            tela_ativar.close()    
+
+def identificaVersao(caminho_txt):
+    versao = 'Não Identificada'
+    with open(caminho_txt, 'r') as arquivo_txt:        
+        vlinha = 1
+        for linha in arquivo_txt:
+            if vlinha <= 20:
+                if("CRESOL" in linha):
+                    return 'cresol'
+                    break
+
+                if("COOP CRED POUP E INVEST" in linha):
+                    return 'sicredi'
+                    break
+
+                if("COOP.CRED.POUP.INVESTIMENTO CONEXAO" in linha):
+                    return 'sicredi'
+                    break
+            else:
+                break 
+            
+            vlinha = vlinha + 1
+    
+    return versao
 
 #dados = carregaIndice('igpm', 2022, 3)
 

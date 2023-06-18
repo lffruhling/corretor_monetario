@@ -23,6 +23,8 @@ fichas_importadas = []
 fichas_alcadas    = []  
 tela = None
 
+id_ficha_grafica = 0
+
 def alimentaDetalhesRelatorio(lista, data, descricao, valor, correcao, corrigido, juros, total):
     lista.append({"data":data, "descricao":descricao, "valor":valor,"correcao":correcao,"corrigido":corrigido,"juros":juros,"total":total})
 
@@ -159,6 +161,7 @@ def main():
     global tela
     global fichas_importadas
     global fichas_alcadas
+    global id_ficha_grafica
 
     if not os.path.isdir(vPath): # vemos de este diretorio ja existe        
         os.mkdir(vPath)
@@ -425,6 +428,7 @@ def main():
                 telaAlcadas(True)
 
             if eventos == 'btn_cancelar':
+                id_ficha_grafica = 0
                 tela['-INPUT-'].update("")
                 carregaParametros(tela)
                 carregaAlcadasPadrao()
@@ -480,6 +484,7 @@ def main():
                     print('Nenhum id selecionado')
 
             if eventos == '-INPUT-':
+                id_ficha_grafica = 0
                 carregaParametros(tela)
                 atualizaInfo()     
                 
@@ -620,6 +625,11 @@ def main():
                     f.gravalog('Falha ao tentar salvar os parâmetros. ' + str(erro), True)                
             
             if eventos == 'Calcular':
+
+                ## Se tentar calcular uma ficha já importada
+                if id_ficha_grafica > 0:
+                    sg.popup('Esta ficha já foi calculada. Para calcular novamente, selecione o arquivo.')
+                    continue
 
                 ## ALÇADAS
 

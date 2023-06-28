@@ -403,16 +403,20 @@ def identificaVersao(caminho_txt):
         for linha in arquivo_txt:
             if vlinha <= 20:
                 if("CRESOL" in linha):
-                    return 'cresol'
-                    break
+                    return 'cresol'                    
 
                 if("COOP CRED POUP E INVEST" in linha):
-                    return 'sicredi'
-                    break
+                    return 'sicredi'                    
 
                 if("COOP.CRED.POUP.INVESTIMENTO CONEXAO" in linha):
-                    return 'sicredi'
-                    break
+                    return 'sicredi'                    
+
+                if("C.C.P.I. DA REGIAO DA PRODUCAO" in linha):
+                    return 'sicredi'  
+
+                if("COOP.CRED.POUP.INVESTIMENTO ALTO URUGUAI" in linha):
+                    return 'sicredi'                                  
+
             else:
                 break 
             

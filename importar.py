@@ -1,18 +1,29 @@
 import funcoes as f
 from datetime import datetime, date, timedelta
 import re
+import time
 
-def pegaParcelaLinha(linha):
-    if linha != '':
-        capturado = linha[116:134].replace(" ", "")
-        capturado = capturado.split('/')
-             
-        try:
-            parcela = capturado
-        except:
-            parcela = 0
-    
-    return parcela
+def pegaParcelaLinha(linha):    
+    parcela = 0
+
+    try:
+        if linha != '':
+            if('NUMERO DE PARCELAS ...:' in linha):
+                ## Encontra as posições iniciais e finais da frase na linha
+                pos_inicial = linha.find('NUMERO DE PARCELAS ...:')
+                pos_final   = pos_inicial + len('NUMERO DE PARCELAS ...:')
+                
+                ## Captura o valor a partir da posição final da frase até o final da linha, remove os espaços em branco
+                valor_capturado = linha[pos_final:].replace(' ','')       
+                valor_capturado = valor_capturado.rstrip()                
+
+                parcela = valor_capturado.split('/')                     
+
+                return parcela        
+        
+    except Exception as erro:
+        f.gravalog('Ocorreu um erro ao tentar identificar as informações de parcela. ' + str(erro) + '. LINHA DO ARQUIVO: ' + str(linha), True)
+        return parcela        
 
 def pegaDataLinha(linha):
     if linha != '':
@@ -44,17 +55,28 @@ def pegaSaldoLinha(linha):
 
 def pegaTxJuroLinha(linha):
     valor_final = 0
-    if ("TX JR NORMAL" in linha):
-        capturado = linha[17:35].replace(" ", "")
-        capturado = capturado.replace("%", "")
-        capturado = capturado.replace("a", "")
-        capturado = capturado.replace("m", "")
-        capturado = capturado.replace(".", "")
-        
-        valor       = float(capturado.replace(",","."))
-        valor_final = "{:.2f}".format(valor)        
-    
-    return valor_final
+
+    try:
+        if linha != '':
+            if ("TX JR NORMAL" in linha):
+                pos_inicial = linha.find("TX JR NORMAL .:")
+                pos_final   = pos_inicial + len("TX JR NORMAL .:")
+
+                pos_inicial_proximo_campo = linha.find('PERCENT CM NORMAL')
+
+                capturado   = linha[pos_final:pos_inicial_proximo_campo-1].replace(' ','')      
+                capturado = capturado.replace("%", "")
+                capturado = capturado.replace("a", "")
+                capturado = capturado.replace("m", "")
+                capturado = capturado.replace(".", "")
+                
+                valor       = float(capturado.replace(",","."))
+                valor_final = "{:.2f}".format(valor)                                          
+    except Exception as erro:
+        f.gravalog('Ocorreu um erro ao tentar identificar a taxa de Juros. ' + str(erro) + '. LINHA DO ARQUIVO: ' + str(linha))
+
+    finally:
+        return valor_final
 
 def pegaDebitoLinha(linha):
     if linha != '':
@@ -116,35 +138,61 @@ def pegaParcelaDetalheLinha(linha):
 
 def pegaAssociadoLinha(linha):
     capturado = ''
-    if ("ASSOCIADO ....:" in linha):
-        capturado = linha[24:57]                              
+    if ("ASSOCIADO ....:" in linha):        
+        pos_inicial = linha.find("ASSOCIADO ....:")
+        pos_final   = pos_inicial + len("ASSOCIADO ....:")
+        
+        ## identifica onde começa o próximo campo para saber o intervalo para capturar a informação do nome
+        pos_inicial_proximo_campo = linha.find("SITUACAO ..:")
+
+        ## Remove o número da conta da frante do nome do associado
+        remover = ['0','1','2','3','4','5','6','7','8','9','-']
+        capturado = linha[pos_final:pos_inicial_proximo_campo]
+        for item in remover:
+            capturado = capturado.replace(item,'')
+
+        ## Remove os espaços em branco do inicio e fim da string
+        capturado = capturado.strip()
     
     return capturado
 
 def pegaValorFinanciadoLinha(linha):
     if linha != '':
-        capturado = linha[116:134].replace(" ", "")
-        capturado = capturado.replace(".", "")
-        capturado = capturado.replace(",", ".")
-        capturado = capturado.rstrip('\n')
+        if("VALOR FINANCIADO .....:" in linha):
+            pos_inicial = linha.find("VALOR FINANCIADO .....:")
+            pos_final   = pos_inicial + len("VALOR FINANCIADO .....:")
+
+            capturado   = linha[pos_final:].replace(' ', '')        
+            capturado = capturado.replace(".", "")
+            capturado = capturado.replace(",", ".")
+            capturado = capturado.rstrip()
     
     return capturado
 
 def pegaDataLiberacaoLinha(linha):
     data_final = None
-    if linha != '':
-        capturado = linha[70:81].replace(" ", "")
-        capturado = capturado.replace("/", "-")
-                        
-        data = capturado.split('-')
-        dia = data[0]
-        mes = data[1]
-        ano = data[2]        
-        
-        data_formatada = ano + '-' + mes + '-' + dia
-        data_final = datetime(int(ano),int(mes),int(dia))
-    
-    return data_final
+
+    try:
+        if linha != '':
+            if('LIBERACAO .:' in linha):
+                pos_inicial = linha.find('LIBERACAO .:')
+                pos_final   = pos_inicial + len('LIBERACAO .:')
+
+                capturado = linha[pos_final:pos_final + 12].replace(' ', '')            
+                capturado = capturado.replace("/", "-")            
+                            
+                data = capturado.split('-')
+                dia = data[0]
+                mes = data[1]
+                ano = data[2]        
+            
+                data_formatada = ano + '-' + mes + '-' + dia
+                data_final = datetime(int(ano),int(mes),int(dia))
+    except Exception as erro:
+        f.gravalog('Ocorreu um erro ao tentar capturar a data de liberação. ' + str(erro) + '. LINHA ARQUIVO: ' + str(linha))      
+
+    finally:
+        return data_final
 
 def importaFichaGrafica(vCaminhoTxt, informacoes=False):
 
@@ -173,8 +221,11 @@ def importaFichaGrafica(vCaminhoTxt, informacoes=False):
         for linha in ficha_grafica:         
 
             if ("TITULO:" in linha and vlinha <= 5):
-                v_titulo = linha[122:134].replace(" ", "")
-                titulo = v_titulo[:-1]
+                pos_inicial = linha.find("TITULO:")
+                pos_final   = pos_inicial + len("TITULO:")
+
+                v_titulo = linha[pos_final:].replace(' ', '')                
+                titulo = v_titulo.rstrip()
 
             if ("COMPOSICAO ...:" in linha and vlinha <= 10):
                 if("PRICE" in linha):
@@ -197,7 +248,7 @@ def importaFichaGrafica(vCaminhoTxt, informacoes=False):
                 
             if("NUMERO DE PARCELAS ...:" in linha):                    
                 dados = pegaParcelaLinha(linha)
-                
+                                
                 nro_parcelas = int(dados[1])
                 parcela      = int(dados[0])
                 
@@ -218,7 +269,7 @@ def importaFichaGrafica(vCaminhoTxt, informacoes=False):
         print('Data Entrada Prejuizo: ' + str(dataEntradaPrejuizo)) #Salvar a data de entrada no prejuizo na base
 
     if informacoes:
-        return 'Coop: Sicredi   Modalidade: ' + str(modalidade_amortizacao), 'Associado: ' + str(associado), 'Data de Liberação: ' + str(liberacao.strftime('%d/%m/%Y')), 'Número de Parcelas: ' + str(nro_parcelas), 'Parcela atual: ' + str(parcela), 'Título: ' + titulo, 'Taxa de Juros: ' + taxa_juro, 'Valor Financiado: ' + valor_financiado, 'Data da Inadimplência: ' + dataEntradaPrejuizo.strftime("%m/%d/%Y")
+        return 'Coop: Sicredi   Modalidade: ' + str(modalidade_amortizacao), 'Associado: ' + str(associado), 'Data de Liberação: ' + str(liberacao.strftime('%d/%m/%Y')), 'Número de Parcelas: ' + str(nro_parcelas), 'Parcela atual: ' + str(parcela), 'Título: ' + str(titulo), 'Taxa de Juros: ' + str(taxa_juro), 'Valor Financiado: ' + str(valor_financiado), 'Data da Inadimplência: ' + dataEntradaPrejuizo.strftime("%d/%m/%Y")
     else:            
         db     = f.conexao()
         cursor = db.cursor()

@@ -252,7 +252,7 @@ def main():
                 [frame_outros],                
                 [sg.Text(text='Aguardando Operação', key='ed_situacao', text_color="green")],
                 [sg.ProgressBar(100, orientation='h', size=(50, 4), key='progressbar', visible=False, expand_x=True)],
-                [sg.Button('Calcular'), sg.Button('Fechar'), sg.Text('Host: ' + maquina + '   |   IP: '+ ip +'   |   '+ internet +'   |   Versão: ' + versao_exe + ' - ' + versao_descricao, expand_x=True, justification='right', font=("Verdana",8))]      
+                [sg.Button('Calcular'), sg.Button('Fechar'), sg.Button('Testar'), sg.Text('Host: ' + maquina + '   |   IP: '+ ip +'   |   '+ internet +'   |   Versão: ' + versao_exe + ' - ' + versao_descricao, expand_x=True, justification='right', font=("Verdana",8))]      
              ]
     
     ## Itens da aba Importadas
@@ -716,8 +716,10 @@ def main():
                     if not os.path.isdir(path_destino): 
                         os.mkdir(path_destino)
 
+                    is_pdf = False
                     if tipo_arquivo == 'pdf':                    
                         arquivo_importar = converterPDF(caminho)
+                        is_pdf           = True
                         remove_arquivo   = True                    
                     else:
                         arquivo_importar = caminho
@@ -729,7 +731,7 @@ def main():
                         progress_bar.UpdateBar(50)
                         if f.identificaVersao(arquivo_importar) == 'sicredi':
                             versao   = 'sicredi'
-                            retorno  = sicredi.importarSicredi(arquivo_importar, parametros)
+                            retorno  = sicredi.importarSicredi(arquivo_importar, parametros, is_pdf)
                             titulo   = retorno[0]
                             ficha_id = retorno[1]
                             progress_bar.UpdateBar(74)                
@@ -754,9 +756,11 @@ def main():
                         
                         if versao == 'sicredi':                        
                             ##Busca dados do cabeçalho no BD                            
+                            print('Título: ' + titulo)
                             sql_consulta = 'select titulo,associado,nro_parcelas,parcela,valor_financiado,tx_juro,multa,liberacao,id,entrada_prejuizo from ficha_grafica WHERE titulo = %s AND situacao = "ATIVO"'
                             cursor.execute(sql_consulta, (titulo,))                                                                        
                             dados_cabecalho = cursor.fetchall()
+                            print('Dados cabeçalho: ' + str(dados_cabecalho))
                                                                                                                                                                                                                               
                             ##busca detalhes do BD
                             ##Alimenta variaveis para relatorio
@@ -845,7 +849,7 @@ def main():
             if eventos == sg.WINDOW_CLOSED:
                 break
             if eventos == 'Fechar':
-                break                                                                                                                                      
+                break                                                                                                                                   
                 
 main()
 

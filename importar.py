@@ -25,7 +25,7 @@ def pegaParcelaLinha(linha):
         f.gravalog('Ocorreu um erro ao tentar identificar as informações de parcela. ' + str(erro) + '. LINHA DO ARQUIVO: ' + str(linha), True)
         return parcela        
 
-def pegaDataLinha(linha):
+def pegaDataLinha(linha, pdf):
     if linha != '':
         capturado = linha[0:11].replace(" ", "")                        
 
@@ -41,17 +41,25 @@ def pegaDataLinha(linha):
     
     return data_final
 
-def pegaSaldoLinha(linha):
+def pegaSaldoLinha(linha, pdf):
     if linha != '':
-        capturado = linha[120:134].replace(" ", "")
-        
-        if capturado != '':
-            capturado = capturado.replace(".", "")
-            valor = capturado.replace(",", ".")
+        valor = 0
+
+        if pdf:
+            valores   = linha.split(" ")
+            capturado = valores[-1]
+            valor     = capturado.replace(".", "")
+            valor     = valor.replace(",", ".")
         else:
-            valor = 0
+            capturado = linha[120:134].replace(" ", "")
+            
+            if capturado != '':
+                capturado = capturado.replace(".", "")
+                valor = capturado.replace(",", ".")
+            else:
+                valor = 0
     
-    return float(valor)
+    return float(valor.rstrip())
 
 def pegaTxJuroLinha(linha):
     valor_final = 0
@@ -78,26 +86,55 @@ def pegaTxJuroLinha(linha):
     finally:
         return valor_final
 
-def pegaDebitoLinha(linha):
+def pegaDebitoLinha(linha, pdf, valor_saldo_anterior):
+    valor = 0
     if linha != '':
-        capturado = linha[63:82].replace(" ", "")
-        if capturado != '':
-            capturado = capturado.replace(".", "")
-            valor     = capturado.replace(",",".")
+        if pdf:
+            saldo_atual = pegaSaldoLinha(linha, pdf)
+            ## Se o saldo da linha atual for maior que o saldo da linha de cima, então é Débito
+            if saldo_atual >= valor_saldo_anterior:
+                valores = linha.split(" ")
+                capturado = valores[len(valores)-1]
+                
+                capturado = capturado.replace(".","")
+                capturado = capturado.replace(",",".")
+
+                valor = capturado.rstrip()
         else:
-            valor = 0
+            capturado = linha[63:82].replace(" ", "")
+            if capturado != '':
+                capturado = capturado.replace(".", "")
+                valor     = capturado.replace(",",".")
+            else:
+                valor = 0
     
     return float(valor)
 
-def pegaCreditoLinha(linha):
+def pegaCreditoLinha(linha, pdf, valor_saldo_anterior):
+    valor = 0
+
     if linha != '':
-        capturado = linha[83:107].replace(" ", "")
-        
-        if capturado != '':
-            capturado = capturado.replace(".", "")
-            valor     = capturado.replace(",",".")
+        if pdf:
+            saldo_atual = pegaSaldoLinha(linha, pdf)
+
+            ## Se o saldo da linha atual for menor que o saldo da linha de cima, então é Crédito
+            if saldo_atual < valor_saldo_anterior:
+                valores = linha.split(" ")
+                capturado = valores[len(valores)-1]
+                
+                capturado = capturado.replace(".","")
+                capturado = capturado.replace(",",".")
+
+                valor = capturado
+
         else:
-            valor = 0
+            capturado = linha[83:107].replace(" ", "")
+            
+            if capturado != '':
+                capturado = capturado.replace(".", "")
+                valor     = capturado.replace(",",".")
+            else:
+                valor = 0
     
     return float(valor)
 
@@ -118,19 +155,19 @@ def existeTextoLinha(linha, texto):
     else:
         return False
     
-def pegaCodigoLinha(linha):
+def pegaCodigoLinha(linha, pdf):
     if linha != '':
         capturado = linha[12:17].replace(" ", "")
     
     return capturado
 
-def pegaHistoricoLinha(linha):
+def pegaHistoricoLinha(linha, pdf):
     if linha != '':
         capturado = linha[17:59]
     
     return capturado
 
-def pegaParcelaDetalheLinha(linha):
+def pegaParcelaDetalheLinha(linha, pdf):
     if linha != '':
         capturado = linha[59:63].replace(" ", "")
     
@@ -292,7 +329,7 @@ def importaFichaGrafica(vCaminhoTxt, informacoes=False):
             f.gravalog('Cabeçalho Ficha Gráfica Sicredi importado com sucesso. Id: ' + str(cursor.lastrowid))
             return cursor.lastrowid
 
-def importaFichaGraficaDetalhe(vArquivoTxt, id_ficha_grafica):
+def importaFichaGraficaDetalhe(vArquivoTxt, id_ficha_grafica, pdf=False):
 
     f.gravalog('Inicia importação dos Detalhes da Ficha Gráfica Sicredi. Id: ' + str(id_ficha_grafica))
 
@@ -319,12 +356,16 @@ def importaFichaGraficaDetalhe(vArquivoTxt, id_ficha_grafica):
         encontrou_titulo = False
         
         ficha_grafica = reader.readlines()  
-                    
-        vlinha = 1        
-        for linha in ficha_grafica:         
+
+        vlinha = 0        
+        for linha in ficha_grafica:
             if ("TITULO:" in linha and vlinha <= 5 and encontrou_titulo == False):
-                titulo = linha[122:134].replace(" ", "")
-                titulo = titulo[:-1]
+                if pdf:
+                    capturado = linha.split(" ")
+                    titulo    = capturado[-1].rstrip()
+                else:
+                    titulo = linha[122:134].replace(" ", "")
+                    titulo = titulo[:-1]
 
                 sql_update = 'UPDATE ficha_detalhe SET situacao = "INATIVO" WHERE titulo = %s AND situacao = "ATIVO"'
                 cursor.execute(sql_update, (titulo,))
@@ -334,36 +375,46 @@ def importaFichaGraficaDetalhe(vArquivoTxt, id_ficha_grafica):
                 encontrou_titulo = True
 
             if(linha[0:3] in array_datas):
-                data          = pegaDataLinha(linha)
-                codigo        = pegaCodigoLinha(linha)
-                historico     = pegaHistoricoLinha(linha)
-                parcela       = pegaParcelaDetalheLinha(linha)
-                valor_debito  = pegaDebitoLinha(linha)
-                valor_credito = pegaCreditoLinha(linha)
-                valor_saldo   = pegaSaldoLinha(linha)
+                vlinha_anterior = 0
+                if vlinha > 0:
+                    vlinha_anterior = vlinha -1 
+                
+                saldo_anterior = 0
+                
+                if ((vlinha_anterior > 0) and (ficha_grafica[vlinha_anterior][0:3] in array_datas)):
+                    saldo_anterior = pegaSaldoLinha(ficha_grafica[vlinha_anterior], pdf)
+
+                data          = pegaDataLinha(linha, pdf)
+                codigo        = pegaCodigoLinha(linha, pdf)
+                historico     = pegaHistoricoLinha(linha, pdf)
+                parcela       = pegaParcelaDetalheLinha(linha, pdf)
+                valor_debito  = pegaDebitoLinha(linha, pdf, saldo_anterior)
+                valor_credito = pegaCreditoLinha(linha, pdf, saldo_anterior)
+                valor_saldo   = pegaSaldoLinha(linha, pdf)
                 situacao      = "ATIVO"                                                                
                 
                 vsql = 'INSERT INTO ficha_detalhe(id_ficha_grafica, titulo, data, cod, historico, parcela, situacao, valor_credito, valor_debito, valor_saldo)\
                     VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
                 
-                parametros = (id_ficha_grafica, str(titulo), data, str(codigo), historico, str(parcela), situacao, valor_credito, valor_debito, valor_saldo)
+                parametros = (id_ficha_grafica, str(titulo.rstrip()), data, str(codigo), historico, str(parcela), situacao, valor_credito, valor_debito, valor_saldo)
                 
                 cursor.execute(vsql, parametros)
                 resultado = cursor.fetchall()                   
 
-                vlinha = vlinha + 1
-    db.commit()
-    if cursor.rowcount > 0:
-        f.gravalog('Detalhe Ficha Gráfica Sicredi importado com sucesso. Id: ' + str(id_ficha_grafica))        
+            vlinha = vlinha + 1
 
-    return titulo
+        db.commit()
+        if cursor.rowcount > 0:
+            f.gravalog('Detalhe Ficha Gráfica Sicredi importado com sucesso. Id: ' + str(id_ficha_grafica))        
+
+    return titulo.rstrip()
             
-def importarSicredi(vCaminhoTxt, parametros):
+def importarSicredi(vCaminhoTxt, parametros, pdf=False):
     print('Importando arquivo: ' + str(vCaminhoTxt))
     ficha_grafica = importaFichaGrafica(vCaminhoTxt)
     if ficha_grafica > 0:
         f.salvaParametrosImportacao(ficha_grafica, parametros['igpm'], parametros['ipca'], parametros['cdi'], parametros['inpc'], parametros['tr'], parametros['multa_perc'],\
                                     parametros['multa_valor'], parametros['multa_incidencia'], parametros['honorarios_perc'], parametros['honorarios_valor'], parametros['outros_valor'])
-        ficha_titulo = importaFichaGraficaDetalhe(vCaminhoTxt, ficha_grafica)        
+        ficha_titulo = importaFichaGraficaDetalhe(vCaminhoTxt, ficha_grafica, pdf)        
 
     return ficha_titulo, ficha_grafica

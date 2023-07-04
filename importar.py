@@ -163,7 +163,25 @@ def pegaCodigoLinha(linha, pdf):
 
 def pegaHistoricoLinha(linha, pdf):
     if linha != '':
-        capturado = linha[17:59]
+        if pdf:
+            descricao    = ''
+            linha        = linha.rstrip()
+            linha        = linha.strip()
+            valores      = linha.split(" ", 2)
+            palavras     = valores[2].split(" ")
+            total_partes = len(palavras) -3
+
+            x = 0
+            while x <= total_partes:
+                if descricao != "":
+                    descricao = descricao + ' '
+
+                descricao = descricao + palavras[x]
+                x         = x + 1
+
+            capturado = descricao
+        else:
+            capturado = linha[17:59]
     
     return capturado
 
@@ -387,6 +405,7 @@ def importaFichaGraficaDetalhe(vArquivoTxt, id_ficha_grafica, pdf=False):
                 data          = pegaDataLinha(linha, pdf)
                 codigo        = pegaCodigoLinha(linha, pdf)
                 historico     = pegaHistoricoLinha(linha, pdf)
+                print(historico)
                 parcela       = pegaParcelaDetalheLinha(linha, pdf)
                 valor_debito  = pegaDebitoLinha(linha, pdf, saldo_anterior)
                 valor_credito = pegaCreditoLinha(linha, pdf, saldo_anterior)

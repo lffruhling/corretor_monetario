@@ -157,7 +157,11 @@ def existeTextoLinha(linha, texto):
     
 def pegaCodigoLinha(linha, pdf):
     if linha != '':
-        capturado = linha[12:17].replace(" ", "")
+        if pdf:
+            valores   = linha.split(" ",5)
+            capturado = str(valores[1].rstrip())
+        else:   
+            capturado = linha[12:17].replace(" ", "")
     
     return capturado
 
@@ -172,7 +176,7 @@ def pegaHistoricoLinha(linha, pdf):
             total_partes = len(palavras) -3
 
             x = 0
-            while x <= total_partes:
+            while x < total_partes:
                 if descricao != "":
                     descricao = descricao + ' '
 
@@ -185,9 +189,22 @@ def pegaHistoricoLinha(linha, pdf):
     
     return capturado
 
-def pegaParcelaDetalheLinha(linha, pdf):
+def pegaParcelaDetalheLinha(linha, pdf, historico):
     if linha != '':
-        capturado = linha[59:63].replace(" ", "")
+        if pdf:
+            if historico != '':   
+                pos_inicial = linha.find(historico)
+                pos_final   = pos_inicial + len(historico)
+
+                vcapturado  = linha[pos_final:pos_final+5].replace(' ','')
+
+                try:
+                    int(vcapturado)
+                    capturado = vcapturado
+                except:
+                    capturado = ''
+        else:
+            capturado = linha[59:63].replace(" ", "")
     
     return capturado
 
@@ -406,7 +423,7 @@ def importaFichaGraficaDetalhe(vArquivoTxt, id_ficha_grafica, pdf=False):
                 codigo        = pegaCodigoLinha(linha, pdf)
                 historico     = pegaHistoricoLinha(linha, pdf)
                 print(historico)
-                parcela       = pegaParcelaDetalheLinha(linha, pdf)
+                parcela       = pegaParcelaDetalheLinha(linha, pdf, historico)
                 valor_debito  = pegaDebitoLinha(linha, pdf, saldo_anterior)
                 valor_credito = pegaCreditoLinha(linha, pdf, saldo_anterior)
                 valor_saldo   = pegaSaldoLinha(linha, pdf)

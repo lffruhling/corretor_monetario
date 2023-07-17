@@ -7,11 +7,17 @@ import requests
 import os
 import winreg as wrg
 import PySimpleGUI as sg
+import wget
 
 def conexao():
     #return MySQLdb.connect(host="10.4.21.24", user='root', passwd='*Sicred1',db='db_teste')
     return MySQLdb.connect(host="mysql.edersondallabrida.com", user=c.USUARIO_DB1, passwd=c.SENHA_DB1,db=c.NOME_DB1)
     
+def download():
+    file_url = 'https://drive.google.com/file/d/19gNbvs-7WYSD6FzgJ3tImE995A6tUCfD/view?usp=sharing'
+    file = 'arquivolocal.rar'
+    wget.download(file_url , file )
+
 def salvaFichaAlcadas(id_ficha, alcadas=[]):
     db     = conexao()
     cursor = db.cursor()

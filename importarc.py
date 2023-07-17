@@ -175,7 +175,6 @@ def importar_detalhes(vArquivoTxt, titulo, id_ficha_grafica):
     with open(vArquivoTxt, 'r') as arquivo:        
         vlinha = 1
         for linha in arquivo:                                    
-                                            
             ## Divide a linha em um array de 4 partes
             linha_atual = linha.split(" ", 4)
             
@@ -263,7 +262,7 @@ def importar_detalhes(vArquivoTxt, titulo, id_ficha_grafica):
                     
                 parametros = (id_ficha_grafica, str(titulo), data_movimento, str(operacao), descricao, str(parcela), "ATIVO", valor_credito, valor_debito, saldo)                
                 cursor.execute(vsql, parametros)
-                resultado = cursor.fetchall()                                               
+                resultado = cursor.fetchall()
 
             vlinha = vlinha + 1
             vLinhaLancamento = False

@@ -452,7 +452,28 @@ def calcularJurosPrice(valorParcela, txJuro, totalMeses, composto=True):
     else:
         return totalJurosAcumulado
 
+def calculaParcela(valorParcela, percentualJuros, totalMeses):
+    totalParcelaAtualizada = valorParcela
+    totalJuros = 0
+    for i in range(totalMeses):
+        juros = (totalParcelaAtualizada * percentualJuros) / 100
+        totalJuros += juros
+        totalParcelaAtualizada += juros
+
+    return {
+        'totalJuros': totalJuros,
+        'parcelaAtualizada': totalParcelaAtualizada
+    }
+
+
 def moeda(valor):
     locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
     valor = locale.currency(valor, grouping=True, symbol=None)
     return ('R$ %s' % valor)
+
+def retornaCDI(cursor, ano, mes):
+    cursor.execute('SELECT jan, fev, mar, abr, mai, jun, jul, ago, `set`, `out`, nov, dez FROM cdi where ano = %s;',
+                   [ano])
+    resultCDI = cursor.fetchone()
+
+    return float(resultCDI[int(mes) - 1])

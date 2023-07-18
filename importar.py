@@ -94,8 +94,8 @@ def pegaDebitoLinha(linha, pdf, valor_saldo_anterior):
             ## Se o saldo da linha atual for maior que o saldo da linha de cima, então é Débito
             if saldo_atual >= valor_saldo_anterior:
                 valores = linha.split(" ")
-                capturado = valores[len(valores)-1]
-                
+                capturado = valores[-2]
+
                 capturado = capturado.replace(".","")
                 capturado = capturado.replace(",",".")
 
@@ -120,7 +120,7 @@ def pegaCreditoLinha(linha, pdf, valor_saldo_anterior):
             ## Se o saldo da linha atual for menor que o saldo da linha de cima, então é Crédito
             if saldo_atual < valor_saldo_anterior:
                 valores = linha.split(" ")
-                capturado = valores[len(valores)-1]
+                capturado = valores[-2]
                 
                 capturado = capturado.replace(".","")
                 capturado = capturado.replace(",",".")

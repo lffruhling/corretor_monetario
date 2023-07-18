@@ -759,46 +759,84 @@ def main():
                         dados_cabecalho = cursor.fetchone()
 
                         if versao == 'sicredi':
-                            ##Busca dados do cabeçalho no BD                            
-                            # print('Título: ' + titulo)
-                            # sql_consulta = 'select titulo,associado,nro_parcelas,parcela,valor_financiado,tx_juro,multa,liberacao,id,entrada_prejuizo from ficha_grafica WHERE titulo = %s AND situacao = "ATIVO"'
-                            # cursor.execute(sql_consulta, (titulo,))
-                            # dados_cabecalho = cursor.fetchall()
-                            # print('Dados cabeçalho: ' + str(dados_cabecalho))
-                                                                                                                                                                                                                              
+
                             ##busca detalhes do BD
                             ##Alimenta variaveis para relatorio
-                            sql_parcelas = 'select id, data, valor_credito, historico from ficha_detalhe WHERE id_ficha_grafica = %s AND valor_credito > 0 AND (historico like %s or historico like %s)'
-                            cursor.execute(sql_parcelas, [dados_cabecalho[0][8],"%AMORTI%", "%LIQUI%"])
+                            sql_parcelas = 'select distinct(data), valor_credito, historico from ficha_detalhe WHERE id_ficha_grafica = %s AND valor_credito > 0 AND (historico like %s or historico like %s)'
+                            cursor.execute(sql_parcelas, [dados_cabecalho[0],"%AMORTI%", "%LIQUI%"])
                             resultParcelas = cursor.fetchall()
+
+                            totalJurosAcumulado = 0
+                            totalLiberado = 0
+                            totalPago = 0
+                            taxaDeJuros = float(dados_cabecalho[7])
+                            totalParcelaCorrigida = 0
+
                             for parcela in resultParcelas:
-                                totalMeses = (datetime.today().year - parcela[1].year) * 12 + (
-                                            datetime.today().month - parcela[1].month)
+                                totalMeses = (datetime.today().year - parcela[0].year) * 12 + (
+                                        datetime.today().month - parcela[0].month)
 
-                                resultJurosComposto = f.calcularJurosPrice(parcela[2], dados_cabecalho[0][5], totalMeses)
+                                valorParcela = parcela[1]
+                                descricaoParcela = parcela[2]
 
-                                totalParcelasAcumuladas = totalParcelasAcumuladas + parcela[2]
+                                if descricaoParcela[0] == 'A':
+                                    totalPago += float(valorParcela)
+                                    # valorParcela = float(valorParcela) * -1
+                                else:
+                                    totalLiberado += float(valorParcela)
 
-                                #Valida se a data da parcela é maior ou igual a data de entrada para prejuizo, se sim, adiciona mora
-                                # if parcela[1] >=dados_cabecalho[0][9]:
-                                totalMesesPrejuizo = (datetime.today().year - dados_cabecalho[0][9].year) * 12 + (
-                                        datetime.today().month - dados_cabecalho[0][9].month)
-                                #Falta ler campo e colocar a taxa de juros da mora dinamicamente
-                                totalMorasAcumulado = totalMorasAcumulado + f.calcularJurosPrice(parcela[2], 1, totalMesesPrejuizo, False)
-
+                                resultParcela = f.calculaParcela(valorParcela, taxaDeJuros, totalMeses)
                                 lancamentos.append({
-                                    "data"      : parcela[1].strftime('%d/%m/%Y'),
-                                    "descricao" : parcela[3],
-                                    "valor"     : f.moeda(parcela[2]),
-                                    "correcao"  : f'{dados_cabecalho[0][5]:,.2f}%',
-                                    "corrigido" : f.moeda(totalMorasAcumulado),
-                                    "juros"     : f.moeda(resultJurosComposto['totalJurosAcumuladoPeriodo']),
-                                    "total"     : f.moeda(resultJurosComposto['valorParcelaAtualizada']),
+                                    "data": parcela[0].strftime('%d/%m/%Y'),
+                                    "descricao": descricaoParcela,
+                                    "valor": f.moeda(valorParcela),
+                                    # "correcao": f'{dados_cabecalho[7]:,.2f}%',
+                                    "correcao": f'0,00%',
+                                    "corrigido": f.moeda(parcela[1]),
+                                    "juros": f.moeda(resultParcela['totalJuros']),
+                                    "total": f.moeda(resultParcela['parcelaAtualizada']),
                                 })
 
-                                totalJurosAcumulado = totalJurosAcumulado + resultJurosComposto['totalJurosAcumuladoPeriodo']
+                                totalJurosAcumulado += resultParcela['totalJuros']
+                                totalParcelaCorrigida += valorParcela
 
-                                print(lancamentos)
+                            # aqui
+                            multa = 0
+                            if (dados_cabecalho[8] is not None):
+                                multa = float(dados_cabecalho[8])
+                            else:
+                                multa = float(parametros['multa_perc'])
+                            percentualMulta = multa
+                            totalCorrigido = totalLiberado - totalPago
+                            totalBC = totalJurosAcumulado + totalCorrigido
+                            totalMulta = (totalBC * 2) / 100
+                            totalAutalizado = totalCorrigido + totalJurosAcumulado + totalMulta
+
+                            context = {
+                                "nome_associado": dados_cabecalho[2],
+                                "tipo_correcao": tipo,
+                                "numero_titulo": dados_cabecalho[1],
+                                "forma_calculo": f"Parcelas Atualizadas Individualmente De {dados_cabecalho[9].strftime('%d/%m/%Y')} a {datetime.today().strftime('%d/%m/%Y')}` sem correção.",
+                                "forma_juros": f"Multa de {percentualMulta} sobre o valor corrigido + juros principais + juros moratórios",
+                                "lancamentos": lancamentos,
+                                "total_liberado": f.moeda(totalLiberado),
+                                "total_pago": f.moeda(totalPago),
+                                "total_parcela_corrigida": f.moeda(totalParcelaCorrigida),
+                                "total_corrigido": f.moeda(totalCorrigido),
+                                "total_juros": f.moeda(totalJurosAcumulado),
+                                "total_mora": f.moeda(totalMulta),
+                                "total_divida": f.moeda(totalMulta + totalBC),
+                                "total_bc": f.moeda(totalBC),
+                                "total_atualizado": f.moeda(totalAutalizado),
+                            }
+
+                            progress_bar.UpdateBar(86)
+                            ## Gera o relatório e transforma em .pdf
+                            template = DocxTemplate('C:/Temp/Fichas_Graficas/Template2.docx')
+                            template.render(context)
+                            template.save(path_destino + '/' + tipo + '.docx')
+                            convert(path_destino + '/' + tipo + '.docx', path_destino + '/' + tipo + '.pdf')
+                            os.remove(path_destino + '/' + tipo + '.docx')
                         else:
                             sql_parcelas = 'select distinct(data), valor_credito, historico from ficha_detalhe WHERE id_ficha_grafica = %s AND valor_credito > 0 AND (historico like %s or historico like %s or historico like %s)  order by data'
                             cursor.execute(sql_parcelas, [dados_cabecalho[0], "%AMORTI%", "%LIQUI%", "%LIBERA%"])

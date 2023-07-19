@@ -9,6 +9,12 @@ import winreg as wrg
 import PySimpleGUI as sg
 import wget
 
+#Relatorio
+from docxtpl import DocxTemplate
+from docx2pdf import convert
+import sys
+
+
 def conexao():
     #return MySQLdb.connect(host="10.4.21.24", user='root', passwd='*Sicred1',db='db_teste')
     return MySQLdb.connect(host="mysql.edersondallabrida.com", user=c.USUARIO_DB1, passwd=c.SENHA_DB1,db=c.NOME_DB1)
@@ -483,3 +489,121 @@ def retornaCDI(cursor, ano, mes):
     resultCDI = cursor.fetchone()
 
     return float(resultCDI[int(mes) - 1])
+
+def geraLancamento(cursor, parcelas, aplicaCDI, taxaDeJuros, totalPago, totalLiberado, tx_juros, alcada=None):
+    lancamentos = []
+    totalJurosAcumulado = 0
+    totalParcelaCorrigida = 0
+    for parcela in parcelas:
+        totalMeses = (datetime.today().year - parcela[0].year) * 12 + (
+                datetime.today().month - parcela[0].month)
+
+        valorParcela = parcela[1]
+        descricaoParcela = parcela[2]
+        if alcada is not None:
+            cdi = alcada[1]
+        else:
+            cdi = 0
+
+        if aplicaCDI:
+            cdi += retornaCDI(cursor, parcela[0].year, parcela[0].month)
+
+            parcelaCorrgida = valorParcela + ((valorParcela * cdi) / 100)
+            resultParcela = calculaParcela(parcelaCorrgida, taxaDeJuros, totalMeses)
+        else:
+            parcelaCorrgida = valorParcela
+            resultParcela = calculaParcela(valorParcela, taxaDeJuros, totalMeses)
+
+
+
+        if descricaoParcela[0] == 'A':
+            totalPago += float(valorParcela)
+        else:
+            totalLiberado += float(valorParcela)
+
+        lancamentos.append({
+            "data": parcela[0].strftime('%d/%m/%Y'),
+            "descricao": descricaoParcela,
+            "valor": moeda(valorParcela),
+            "correcao": f'{tx_juros:,.2f}%',
+            "corrigido": moeda(parcelaCorrgida),
+            "juros": moeda(resultParcela['totalJuros']),
+            "total": moeda(resultParcela['parcelaAtualizada']),
+        })
+
+        totalJurosAcumulado += resultParcela['totalJuros']
+        totalParcelaCorrigida += valorParcela
+
+    return [
+        lancamentos,
+        totalJurosAcumulado,
+        totalParcelaCorrigida
+    ]
+
+def geraArquivoPdf(parametros, multa, totalLiberado, totalPago, totalJurosAcumulado, adicionalMulta, adicionalHonorarios, adicionalOutrosValores, nomeAssociado, tipoCorrecao, nroTitulo, dataLiberacao, formaJuros, lancamentos, totalParcelaCorrigida, path_destino, arquivoSaida):
+    vMulta = 0
+    if (multa is not None):
+        vMulta = float(multa)
+    else:
+        vMulta = float(parametros['multa_perc'])
+
+    percentualMulta = vMulta
+    totalCorrigido = totalLiberado - totalPago
+    totalBC = totalJurosAcumulado + totalCorrigido
+    totalMulta = (totalBC * 2) / 100
+    totalAutalizado = totalCorrigido + totalJurosAcumulado + totalMulta + adicionalMulta + adicionalHonorarios + adicionalOutrosValores
+
+    context = {
+        "nome_associado": nomeAssociado,
+        "tipo_correcao": tipoCorrecao,
+        "numero_titulo": nroTitulo,
+        "forma_calculo": f"Parcelas Atualizadas Individualmente De {dataLiberacao} a {datetime.today().strftime('%d/%m/%Y')}` sem correção.",
+        "forma_juros": formaJuros, #,
+        "lancamentos": lancamentos,
+        "total_liberado": moeda(totalLiberado),
+        "total_pago": moeda(totalPago),
+        "total_parcela_corrigida": moeda(totalParcelaCorrigida),
+        "total_corrigido": moeda(totalCorrigido),
+        "total_juros": moeda(totalJurosAcumulado),
+        "total_mora": moeda(totalMulta),
+        "total_divida": moeda(totalMulta + totalBC),
+        "total_bc": moeda(totalBC),
+        "total_atualizado": moeda(totalAutalizado),
+        "adicional_multa": moeda(adicionalMulta),
+        "adicional_honorarios": moeda(adicionalHonorarios),
+        "adicional_outros": moeda(adicionalOutrosValores),
+    }
+
+    ## Gera o relatório e transforma em .pdf
+    template = DocxTemplate('C:/Temp/Fichas_Graficas/Template2.docx')
+    template.render(context)
+    template.save(f'{path_destino}/{tipoCorrecao}.docx')
+    sys.stderr = open("C:/Temp/pdf_consoleoutput.log", "w")
+    convert(f'{path_destino}/{tipoCorrecao}.docx', arquivoSaida)
+    os.remove(f'{path_destino}/{tipoCorrecao}.docx')
+
+def geraPDFCalculo(cursor, parametros, parcelas, tx_juros, multa, nomeAssociado, tipoCorrecao, nroTitulo, dataLiberacao, path_destino, adicionalMulta, adicionalHonorarios, adicionalOutrosValores, arquivoSaida, aplicaCDI=False, alcadas=None):
+    taxaDeJuros             = float(tx_juros)
+    totalParcelaCorrigida   = 0
+    parcelaCorrgida         = 0
+    percentualMulta         = 0
+    totalCorrigido          = 0
+    totalBC                 = 0
+    totalMulta              = 0
+    totalAutalizado         = 0
+    totalLiberado           = 0
+    totalPago               = 0
+
+    if alcadas is None:
+        result = geraLancamento(cursor, parcelas, aplicaCDI, taxaDeJuros, totalPago, totalLiberado, tx_juros)
+        geraArquivoPdf(parametros, multa, totalLiberado, totalPago, result[1], adicionalMulta,
+                       adicionalHonorarios, adicionalOutrosValores, nomeAssociado, tipoCorrecao, nroTitulo,
+                       dataLiberacao, f"Multa de {percentualMulta} sobre o valor corrigido + juros principais + juros moratórios", result[0], result[2], path_destino, arquivoSaida)
+    else:
+        for alcada in alcadas:
+            result = geraLancamento(cursor, parcelas, aplicaCDI, taxaDeJuros, totalPago, totalLiberado, tx_juros, alcada)
+            arquivoSaida = f"{path_destino}/{tipoCorrecao}_ALC_{alcada[0]}.pdf"
+            geraArquivoPdf(parametros, multa, totalLiberado, totalPago, result[1], adicionalMulta,
+                           adicionalHonorarios, adicionalOutrosValores, nomeAssociado, tipoCorrecao, nroTitulo,
+                           dataLiberacao, f"Multa de {percentualMulta} sobre o valor corrigido na Alçada {alcada[0]} com Juros de {alcada[1]:,.2f}%", result[0], result[2], path_destino, arquivoSaida)
+

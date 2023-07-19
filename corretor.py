@@ -1,6 +1,7 @@
 from datetime import datetime
 import time
 import os
+import sys
 import pdfplumber
 import shutil
 from datetime import datetime
@@ -841,6 +842,7 @@ def main():
                             template = DocxTemplate('C:/Temp/Fichas_Graficas/Template2.docx')
                             template.render(context)
                             template.save(path_destino + '/' + tipo + '.docx')
+                            sys.stderr = open("C:/Temp/pdf_consoleoutput.log", "w")
                             convert(path_destino + '/' + tipo + '.docx', path_destino + '/' + tipo + '.pdf')
                             os.remove(path_destino + '/' + tipo + '.docx')
 
@@ -916,6 +918,7 @@ def main():
                                 template = DocxTemplate('C:/Temp/Fichas_Graficas/Template2.docx')
                                 template.render(context)
                                 template.save(path_destino + '/' + tipo + '.docx')
+                                sys.stderr = open("C:/Temp/pdf_consoleoutput.log", "w")
                                 convert(path_destino + '/' + tipo + '.docx', path_destino + '/' + tipo + '_CDI.pdf')
                                 os.remove(path_destino + '/' + tipo + '.docx')
 
@@ -995,6 +998,7 @@ def main():
                                     template = DocxTemplate('C:/Temp/Fichas_Graficas/Template2.docx')
                                     template.render(context)
                                     template.save(path_destino + '/' + tipo + '.docx')
+                                    sys.stderr = open("C:/Temp/pdf_consoleoutput.log", "w")
                                     convert(f"{path_destino}/{tipo}.docx", f"{path_destino}/{tipo}_ALC_{alcada[0]}.pdf")
                                     os.remove(path_destino + '/' + tipo + '.docx')
                         else:
@@ -1064,6 +1068,7 @@ def main():
                             template = DocxTemplate('C:/Temp/Fichas_Graficas/Template2.docx')
                             template.render(context)
                             template.save(path_destino + '/' + tipo + '.docx')
+                            sys.stderr = open("C:/Temp/pdf_consoleoutput.log", "w")
                             convert(path_destino + '/' + tipo + '.docx', path_destino + '/' + tipo + '.pdf')
                             os.remove(path_destino + '/' + tipo + '.docx')
 
@@ -1139,6 +1144,7 @@ def main():
                                 template = DocxTemplate('C:/Temp/Fichas_Graficas/Template2.docx')
                                 template.render(context)
                                 template.save(path_destino + '/' + tipo + '.docx')
+                                sys.stderr = open("C:/Temp/pdf_consoleoutput.log", "w")
                                 convert(path_destino + '/' + tipo + '.docx', path_destino + '/' + tipo + '_CDI.pdf')
                                 os.remove(path_destino + '/' + tipo + '.docx')
 
@@ -1218,6 +1224,7 @@ def main():
                                 template = DocxTemplate('C:/Temp/Fichas_Graficas/Template2.docx')
                                 template.render(context)
                                 template.save(path_destino + '/' + tipo + '.docx')
+                                sys.stderr = open("C:/Temp/pdf_consoleoutput.log", "w")
                                 convert(f"{path_destino}/{tipo}.docx", f"{path_destino}/{tipo}_ALC_{alcada[0]}.pdf")
                                 os.remove(path_destino + '/' + tipo + '.docx')
 

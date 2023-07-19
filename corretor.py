@@ -27,6 +27,10 @@ tela = None
 
 id_ficha_grafica = 0
 
+def atualizaStatus(texto_adicional):
+    global tela
+    tela['ed_situacao'].update("Processando Arquivo... Aguarde... " + 'Importando: ' + texto_adicional)
+
 def alimentaDetalhesRelatorio(lista, data, descricao, valor, correcao, corrigido, juros, total):
     lista.append({"data":data, "descricao":descricao, "valor":valor,"correcao":correcao,"corrigido":corrigido,"juros":juros,"total":total})
 
@@ -38,6 +42,14 @@ def converterPDF(vCaminho_arquivo):
         vNome        = vCaminho_arquivo.split('/')
         vNomeArquivo = vNome[-1][:-4]
 
+        try:
+            if os.path.isfile(vPath + '/' + vNomeArquivo + '.txt'):
+                os.remove(vPath + '/' + vNomeArquivo + '.txt')
+        except Exception as erro:
+            print('Erro ao tentar remover arquivo txt temporário. ' + str(erro))
+
+        print('Convertendo ' + str(len(pdf.pages)) + ' página PDF para txt')
+        
         ## Converte PDF em TXT
         for pagina in pdf.pages:
             texto = pagina.extract_text(x_tolerance=1)
@@ -46,7 +58,7 @@ def converterPDF(vCaminho_arquivo):
             
             with open(vArquivo_final, 'a') as arquivo_txt:
                 arquivo_txt.write(str(texto))       
-                
+            
         pdf.close()         
 
         return vArquivo_final
@@ -733,13 +745,13 @@ def main():
                         progress_bar.UpdateBar(50)
                         if f.identificaVersao(arquivo_importar) == 'sicredi':
                             versao   = 'sicredi'
-                            retorno  = sicredi.importarSicredi(arquivo_importar, parametros, is_pdf)
+                            retorno  = sicredi.importarSicredi(arquivo_importar, parametros, is_pdf, tela)
                             titulo   = retorno[0]
                             ficha_id = retorno[1]
                             progress_bar.UpdateBar(74)                
                         else:
                             versao   = 'cresol'
-                            retorno  = cresol.importarCresol(arquivo_importar, parametros)
+                            retorno  = cresol.importarCresol(arquivo_importar, parametros, tela)
                             titulo   = retorno[0]
                             ficha_id = retorno[1]
                             progress_bar.UpdateBar(74)

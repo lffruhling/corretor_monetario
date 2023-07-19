@@ -364,7 +364,7 @@ def importaFichaGrafica(vCaminhoTxt, informacoes=False):
             f.gravalog('Cabeçalho Ficha Gráfica Sicredi importado com sucesso. Id: ' + str(cursor.lastrowid))
             return cursor.lastrowid
 
-def importaFichaGraficaDetalhe(vArquivoTxt, id_ficha_grafica, pdf=False):
+def importaFichaGraficaDetalhe(vArquivoTxt, id_ficha_grafica, pdf=False, tela=None):
 
     f.gravalog('Inicia importação dos Detalhes da Ficha Gráfica Sicredi. Id: ' + str(id_ficha_grafica))
 
@@ -410,6 +410,8 @@ def importaFichaGraficaDetalhe(vArquivoTxt, id_ficha_grafica, pdf=False):
                 encontrou_titulo = True
 
             if(linha[0:3] in array_datas):
+                if tela != None:
+                    atualizaStatus(tela, linha)
                 vlinha_anterior = 0
                 if vlinha > 0:
                     vlinha_anterior = vlinha -1 
@@ -422,7 +424,6 @@ def importaFichaGraficaDetalhe(vArquivoTxt, id_ficha_grafica, pdf=False):
                 data          = pegaDataLinha(linha, pdf)
                 codigo        = pegaCodigoLinha(linha, pdf)
                 historico     = pegaHistoricoLinha(linha, pdf)
-                print(historico)
                 parcela       = pegaParcelaDetalheLinha(linha, pdf, historico)
                 valor_debito  = pegaDebitoLinha(linha, pdf, saldo_anterior)
                 valor_credito = pegaCreditoLinha(linha, pdf, saldo_anterior)
@@ -441,16 +442,23 @@ def importaFichaGraficaDetalhe(vArquivoTxt, id_ficha_grafica, pdf=False):
 
         db.commit()
         if cursor.rowcount > 0:
-            f.gravalog('Detalhe Ficha Gráfica Sicredi importado com sucesso. Id: ' + str(id_ficha_grafica))        
+            f.gravalog('Detalhe Ficha Gráfica Sicredi importado com sucesso. Id: ' + str(id_ficha_grafica))
+
+            if tela != None:
+                atualizaStatus(tela, 'Gerando PDF final')
 
     return titulo.rstrip()
-            
-def importarSicredi(vCaminhoTxt, parametros, pdf=False):
+
+def atualizaStatus(tela, texto_adicional):
+    tela['ed_situacao'].update("Aguarde... " + 'Importando: ' + texto_adicional[0:80].rstrip() + '...')
+    tela.read(timeout=0.1)
+
+def importarSicredi(vCaminhoTxt, parametros, pdf=False, tela=None):
     print('Importando arquivo: ' + str(vCaminhoTxt))
     ficha_grafica = importaFichaGrafica(vCaminhoTxt)
     if ficha_grafica > 0:
         f.salvaParametrosImportacao(ficha_grafica, parametros['igpm'], parametros['ipca'], parametros['cdi'], parametros['inpc'], parametros['tr'], parametros['multa_perc'],\
                                     parametros['multa_valor'], parametros['multa_incidencia'], parametros['honorarios_perc'], parametros['honorarios_valor'], parametros['outros_valor'])
-        ficha_titulo = importaFichaGraficaDetalhe(vCaminhoTxt, ficha_grafica, pdf)        
+        ficha_titulo = importaFichaGraficaDetalhe(vCaminhoTxt, ficha_grafica, pdf, tela)  
 
     return ficha_titulo, ficha_grafica

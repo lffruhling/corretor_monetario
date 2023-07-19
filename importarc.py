@@ -146,7 +146,7 @@ def importar_cabecalho(vArquivoTxt, informacoes=False):
             print('Cabeçalho importado com sucesso!')
             return cursor.lastrowid
 
-def importar_detalhes(vArquivoTxt, titulo, id_ficha_grafica):    
+def importar_detalhes(vArquivoTxt, titulo, id_ficha_grafica, tela=None):    
 
     f.gravalog('Inicia importação dos Detalhes da Ficha Gráfica Cresol. Id: ' + str(id_ficha_grafica))
 
@@ -184,6 +184,9 @@ def importar_detalhes(vArquivoTxt, titulo, id_ficha_grafica):
 
             ## Se for linha de lançamento, captura as informações 
             if vLinhaLancamento:                    
+                if tela != None:
+                    atualizaStatus(tela, linha)
+
                 descricao = ''
                 parcela   = int(linha_atual[0]) 
                                                             
@@ -270,13 +273,20 @@ def importar_detalhes(vArquivoTxt, titulo, id_ficha_grafica):
     db.commit()
     if cursor.rowcount > 0:
         f.gravalog('Detalhe Ficha Gráfica Cresol importado com sucesso. Id: ' + str(id_ficha_grafica) )
+
+        if tela != None:
+            atualizaStatus(tela, 'Gerando PDF final')
+
+def atualizaStatus(tela, texto_adicional):
+    tela['ed_situacao'].update("Aguarde... " + 'Importando: ' + texto_adicional[0:80].rstrip() + '...')
+    tela.read(timeout=0.1)
     
-def importarCresol(vArquivoTxt, parametros):
+def importarCresol(vArquivoTxt, parametros, tela=None):
     print('Importando arquivo: ' + str(vArquivoTxt))
     ficha_grafica = importar_cabecalho(vArquivoTxt)
     if ficha_grafica > 0:
         f.salvaParametrosImportacao(ficha_grafica, parametros['igpm'], parametros['ipca'], parametros['cdi'], parametros['inpc'], parametros['tr'], parametros['multa_perc'],\
                                     parametros['multa_valor'], parametros['multa_incidencia'], parametros['honorarios_perc'], parametros['honorarios_valor'], parametros['outros_valor'])
-        importar_detalhes(vArquivoTxt, titulo, ficha_grafica)
+        importar_detalhes(vArquivoTxt, titulo, ficha_grafica, tela)
 
     return titulo, ficha_grafica

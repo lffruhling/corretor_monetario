@@ -33,12 +33,13 @@ def salvaFichaAlcadas(id_ficha, alcadas=[]):
         
         parametros = (id_ficha, alcada[0], float(str(alcada[1]).replace(",",".")), 'ATIVO')
     
-        cursor.execute(vsql, parametros)
-        resultado = cursor.fetchall()
-        db.commit()
-
-        if cursor.rowcount > 0:
-            print('Alçada salva com sucesso!')
+        try:
+            cursor.execute(vsql, parametros)
+            resultado = cursor.fetchall()
+            db.commit()
+        except Exception as erro:
+            print('Erro ao tentar salvar alçada.')
+            gravalog('Erro ao tentar salvar alçada. ' + str(erro), True)
 
     cursor.close()
 

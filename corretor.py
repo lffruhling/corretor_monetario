@@ -752,7 +752,11 @@ def main():
                         totalJurosAcumulado     = 0
                         totalMorasAcumulado     = 0
                         totalParcelasAcumuladas = 0
-                        
+
+                        adicinalMulta           = float(parametros['multa_valor'])
+                        adicinalHonorarios      = float(parametros['honorarios_valor'])
+                        adicinalOutrosValores   = float(parametros['outros_valor'])
+
                         ## Aqui Iniciaria a busca dos dados do banco e o calculo, adicionando as linhas calculadas para a confecção do relatório               
                         sql_consulta = 'select id, titulo, associado, modalidade_amortizacao, nro_parcelas, parcela, valor_financiado, tx_juro, multa, liberacao from ficha_grafica WHERE titulo = %s AND situacao = "ATIVO"'
                         cursor.execute(sql_consulta, (titulo,))

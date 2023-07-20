@@ -192,11 +192,11 @@ def main():
     frame_arquivo = sg.Frame('Selecione a Ficha Gráfica', [lista_arquivo], expand_x=True)
     
     lista_indices = []
-    lista_indices.append(sg.Checkbox(text='IGPM', key='ed_igpm'))
-    lista_indices.append(sg.Checkbox(text='IPCA', key='ed_ipca'))
+    lista_indices.append(sg.Checkbox(text='IGPM', key='ed_igpm',disabled=True))
+    lista_indices.append(sg.Checkbox(text='IPCA', key='ed_ipca', disabled=True))
     lista_indices.append(sg.Checkbox(text='CDI', key='ed_cdi'))
-    lista_indices.append(sg.Checkbox(text='INPC', key='ed_inpc'))
-    lista_indices.append(sg.Checkbox(text='TR', key='ed_tr'))
+    lista_indices.append(sg.Checkbox(text='INPC', key='ed_inpc',disabled=True))
+    lista_indices.append(sg.Checkbox(text='TR', key='ed_tr', disabled=True))
     lista_indices.append(sg.Button("Alçadas", key='btn_alcadas'))
     frame_indices = sg.Frame('Índices de Correção', [lista_indices], expand_x=True)
 

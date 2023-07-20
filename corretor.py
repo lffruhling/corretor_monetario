@@ -780,255 +780,47 @@ def main():
 
                         resultParcelas = cursor.fetchall()
 
-                        if versao == 'sicredi':
+                        progress_bar.UpdateBar(75)
 
-                            ##busca detalhes do BD
-                            ##Alimenta variaveis para relatorio
-                            progress_bar.UpdateBar(76)
+                        # Caclula Juros Simples
+                        f.geraPDFCalculo(cursor=cursor,
+                                         parametros=parametros,
+                                         parcelas=resultParcelas,
+                                         tx_juros=dados_cabecalho[7],
+                                         multa=dados_cabecalho[8],
+                                         nomeAssociado=dados_cabecalho[2],
+                                         tipoCorrecao=tipo,
+                                         nroTitulo=dados_cabecalho[1],
+                                         dataLiberacao=dados_cabecalho[9].strftime('%d/%m/%Y'),
+                                         path_destino=path_destino,
+                                         adicionalMulta=adicionalMulta,
+                                         adicionalHonorarios=adicionalHonorarios,
+                                         adicionalOutrosValores=adicionalOutrosValores,
+                                         alcadas=fichas_alcadas,
+                                         isCresol=versao == 'cresol')
 
-                            #Caclula Juros Simples
-                            f.geraPDFCalculo(cursor, parametros, resultParcelas, dados_cabecalho[7], dados_cabecalho[8],
-                                             dados_cabecalho[2], tipo, dados_cabecalho[1],
-                                             dados_cabecalho[9].strftime('%d/%m/%Y'), path_destino, adicionalMulta,
-                                             adicionalHonorarios, adicionalOutrosValores, f'{path_destino}/{tipo}.pdf')
+                        progress_bar.UpdateBar(80)
+                        if parametros['cdi']:
+                            progress_bar.UpdateBar(82)
+                            f.geraPDFCalculo(cursor=cursor,
+                                             parametros=parametros,
+                                             parcelas=resultParcelas,
+                                             tx_juros=dados_cabecalho[7],
+                                             multa=dados_cabecalho[8],
+                                             nomeAssociado=dados_cabecalho[2],
+                                             tipoCorrecao=tipo,
+                                             nroTitulo=dados_cabecalho[1],
+                                             dataLiberacao=dados_cabecalho[9].strftime('%d/%m/%Y'),
+                                             path_destino=path_destino,
+                                             adicionalMulta=adicionalMulta,
+                                             adicionalHonorarios=adicionalHonorarios,
+                                             adicionalOutrosValores=adicionalOutrosValores,
+                                             aplicaCDI=True,
+                                             alcadas=fichas_alcadas,
+                                             isCresol=versao == 'cresol')
 
-                            #Calcula Corrigido Pelo CDI
-                            progress_bar.UpdateBar(77)
-                            if parametros['cdi']:
-                                progress_bar.UpdateBar(78)
-                                f.geraPDFCalculo(cursor, parametros, resultParcelas, dados_cabecalho[7], dados_cabecalho[8],
-                                                 dados_cabecalho[2], tipo, dados_cabecalho[1],
-                                                 dados_cabecalho[9].strftime('%d/%m/%Y'), path_destino, adicionalMulta,
-                                                 adicionalHonorarios, adicionalOutrosValores, f'{path_destino}/{tipo}_CDI.pdf', True)
-                            progress_bar.UpdateBar(90)
-                        else:
+                        progress_bar.UpdateBar(95)
 
-                            totalJurosAcumulado     = 0
-                            totalLiberado           = 0
-                            totalPago               = 0
-                            taxaDeJuros             = float(dados_cabecalho[7])
-                            totalParcelaCorrigida   = 0
-
-                            for parcela in resultParcelas:
-                                totalMeses = (datetime.today().year - parcela[0].year) * 12 + (
-                                        datetime.today().month - parcela[0].month)
-
-                                valorParcela        = parcela[1]
-                                descricaoParcela    = parcela[2]
-
-                                if descricaoParcela[0] == 'A':
-                                    totalPago += float(valorParcela)
-                                    valorParcela = float(valorParcela) * -1
-                                else:
-                                    totalLiberado += float(valorParcela)
-
-
-                                resultParcela = f.calculaParcela(valorParcela, taxaDeJuros, totalMeses)
-                                lancamentos.append({
-                                    "data": parcela[0].strftime('%d/%m/%Y'),
-                                    "descricao": descricaoParcela,
-                                    "valor": f.moeda(valorParcela),
-                                    # "correcao": f'{dados_cabecalho[7]:,.2f}%',
-                                    "correcao": f'0,00%',
-                                    "corrigido": f.moeda(parcela[1]),
-                                    "juros": f.moeda(resultParcela['totalJuros']),
-                                    "total": f.moeda(resultParcela['parcelaAtualizada']),
-                                })
-
-                                totalJurosAcumulado     += resultParcela['totalJuros']
-                                totalParcelaCorrigida   += valorParcela
-
-                            #aqui
-                            percentualMulta = float(dados_cabecalho[8])
-                            totalCorrigido = totalLiberado - totalPago
-                            totalBC = totalJurosAcumulado + totalCorrigido
-                            totalMulta = (totalBC * 2) / 100
-                            totalAutalizado = totalCorrigido + totalJurosAcumulado + totalMulta
-
-                            context = {
-                                "nome_associado": dados_cabecalho[2],
-                                "tipo_correcao": tipo,
-                                "numero_titulo": dados_cabecalho[1],
-                                "forma_calculo": f"Parcelas Atualizadas Individualmente De {dados_cabecalho[9].strftime('%d/%m/%Y')} a {datetime.today().strftime('%d/%m/%Y')}` sem correção.",
-                                "forma_juros": f"Multa de {percentualMulta} sobre o valor corrigido + juros principais + juros moratórios",
-                                "lancamentos": lancamentos,
-                                "total_liberado": f.moeda(totalLiberado),
-                                "total_pago": f.moeda(totalPago),
-                                "total_parcela_corrigida": f.moeda(totalParcelaCorrigida),
-                                "total_corrigido": f.moeda(totalCorrigido),
-                                "total_juros": f.moeda(totalJurosAcumulado),
-                                "total_mora": f.moeda(totalMulta),
-                                "total_divida": f.moeda(totalMulta + totalBC),
-                                "total_bc": f.moeda(totalBC),
-                                "total_atualizado": f.moeda(totalAutalizado),
-                            }
-
-                            progress_bar.UpdateBar(86)
-                            ## Gera o relatório e transforma em .pdf
-                            template = DocxTemplate('C:/Temp/Fichas_Graficas/Template2.docx')
-                            template.render(context)
-                            template.save(path_destino + '/' + tipo + '.docx')
-                            sys.stderr = open("C:/Temp/pdf_consoleoutput.log", "w")
-                            convert(path_destino + '/' + tipo + '.docx', path_destino + '/' + tipo + '.pdf')
-                            os.remove(path_destino + '/' + tipo + '.docx')
-
-                            print(parametros['cdi'])
-                            parcelaCorrgida         = 0
-                            totalParcelaCorrigida   = 0
-                            totalJurosAcumulado     = 0
-                            percentualMulta         = 0
-                            totalCorrigido          = 0
-                            totalBC                 = 0
-                            totalMulta              = 0
-                            totalAutalizado         = 0
-                            totalLiberado           = 0
-                            totalPago               = 0
-                            if parametros['cdi']:
-                                print('calcular CDI')
-                                for parcela in resultParcelas:
-                                    totalMeses = (datetime.today().year - parcela[0].year) * 12 + (
-                                            datetime.today().month - parcela[0].month)
-
-                                    valorParcela = parcela[1]
-                                    descricaoParcela = parcela[2]
-                                    cdi = f.retornaCDI(cursor, parcela[0].year, parcela[0].month)
-
-                                    if descricaoParcela[0] == 'A':
-                                        totalPago += float(valorParcela)
-                                        valorParcela = float(valorParcela) * -1
-                                    else:
-                                        totalLiberado += float(valorParcela)
-
-                                    parcelaCorrgida = valorParcela + ((valorParcela*cdi)/100)
-
-                                    resultParcela = f.calculaParcela(parcelaCorrgida, taxaDeJuros, totalMeses)
-                                    lancamentosCDI.append({
-                                        "data": parcela[0].strftime('%d/%m/%Y'),
-                                        "descricao": descricaoParcela,
-                                        "valor": f.moeda(valorParcela),
-                                        "correcao": f'{cdi:,.2f}%',
-                                        "corrigido": f.moeda(parcelaCorrgida),
-                                        "juros": f.moeda(resultParcela['totalJuros']),
-                                        "total": f.moeda(resultParcela['parcelaAtualizada']),
-                                    })
-
-                                    totalParcelaCorrigida += parcelaCorrgida
-                                    totalJurosAcumulado  += resultParcela['totalJuros']
-
-                                percentualMulta  = float(dados_cabecalho[8])
-                                totalCorrigido = totalLiberado - totalPago
-                                totalBC     = totalJurosAcumulado + totalCorrigido
-                                totalMulta  = (totalBC*2)/100
-                                totalAutalizado = totalCorrigido + totalJurosAcumulado + totalMulta
-
-                                context = {
-                                    "nome_associado"            : dados_cabecalho[2],
-                                    "tipo_correcao"             : tipo,
-                                    "numero_titulo"             : dados_cabecalho[1],
-                                    "forma_calculo"             : f"Parcelas Atualizadas Individualmente De {dados_cabecalho[9].strftime('%d/%m/%Y')} a {datetime.today().strftime('%d/%m/%Y')}` Corrigido pelo CDI.",
-                                    "forma_juros"               : f"Multa de {percentualMulta} sobre o valor corrigido + juros principais + juros moratórios",
-                                    "lancamentos"               : lancamentosCDI,
-                                    "total_liberado"            : f.moeda(totalLiberado),
-                                    "total_pago"                : f.moeda(totalPago),
-                                    "total_parcela_corrigida"   : f.moeda(totalParcelaCorrigida),
-                                    "total_corrigido"           : f.moeda(totalCorrigido),
-                                    "total_juros"               : f.moeda(totalJurosAcumulado),
-                                    "total_mora"                : f.moeda(totalMulta),
-                                    "total_divida"              : f.moeda(totalMulta + totalBC),
-                                    "total_bc"                  : f.moeda(totalBC),
-                                    "total_atualizado"          : f.moeda(totalAutalizado),
-                                    }
-
-                                progress_bar.UpdateBar(86)
-                                ## Gera o relatório e transforma em .pdf
-                                template = DocxTemplate('C:/Temp/Fichas_Graficas/Template2.docx')
-                                template.render(context)
-                                template.save(path_destino + '/' + tipo + '.docx')
-                                sys.stderr = open("C:/Temp/pdf_consoleoutput.log", "w")
-                                convert(path_destino + '/' + tipo + '.docx', path_destino + '/' + tipo + '_CDI.pdf')
-                                os.remove(path_destino + '/' + tipo + '.docx')
-
-                            for alcada in fichas_alcadas:
-                                cdi = 0
-                                parcelaCorrgida = 0
-                                totalParcelaCorrigida = 0
-                                totalJurosAcumulado = 0
-                                percentualMulta = 0
-                                totalCorrigido = 0
-                                totalBC = 0
-                                totalMulta = 0
-                                totalAutalizado = 0
-                                totalLiberado = 0
-                                totalPago = 0
-                                lancamentos.clear()
-                                cdi = alcada[1]
-
-                                for parcela in resultParcelas:
-                                    totalMeses = (datetime.today().year - parcela[0].year) * 12 + (
-                                            datetime.today().month - parcela[0].month)
-
-                                    if parametros['cdi']:
-                                        cdi += f.retornaCDI(cursor, parcela[0].year, parcela[0].month)
-
-                                    valorParcela = parcela[1]
-                                    descricaoParcela = parcela[2]
-
-                                    if descricaoParcela[0] == 'A':
-                                        totalPago += float(valorParcela)
-                                        valorParcela = float(valorParcela) * -1
-                                    else:
-                                        totalLiberado += float(valorParcela)
-
-                                    parcelaCorrgida = valorParcela + ((valorParcela * cdi) / 100)
-
-                                    resultParcela = f.calculaParcela(parcelaCorrgida, taxaDeJuros, totalMeses)
-                                    lancamentos.append({
-                                        "data": parcela[0].strftime('%d/%m/%Y'),
-                                        "descricao": descricaoParcela,
-                                        "valor": f.moeda(valorParcela),
-                                        "correcao": f'{cdi:,.2f}%',
-                                        "corrigido": f.moeda(parcelaCorrgida),
-                                        "juros": f.moeda(resultParcela['totalJuros']),
-                                        "total": f.moeda(resultParcela['parcelaAtualizada']),
-                                    })
-
-                                    totalParcelaCorrigida += parcelaCorrgida
-                                    totalJurosAcumulado += resultParcela['totalJuros']
-
-                                    percentualMulta = float(dados_cabecalho[8])
-                                    totalCorrigido = totalLiberado - totalPago
-                                    totalBC = totalJurosAcumulado + totalCorrigido
-                                    totalMulta = (totalBC * 2) / 100
-                                    totalAutalizado = totalCorrigido + totalJurosAcumulado + totalMulta
-
-                                    context = {
-                                        "nome_associado": dados_cabecalho[2],
-                                        "tipo_correcao": tipo,
-                                        "numero_titulo": dados_cabecalho[1],
-                                        "forma_calculo": f"Parcelas Atualizadas Individualmente De {dados_cabecalho[9].strftime('%d/%m/%Y')} a {datetime.today().strftime('%d/%m/%Y')}` Corrigido pelo CDI.",
-                                        "forma_juros": f"Multa de {percentualMulta} sobre o valor corrigido na Alçada {alcada[0]} com Juros de {alcada[1]:,.2f}%",
-                                        "lancamentos": lancamentos,
-                                        "total_liberado": f.moeda(totalLiberado),
-                                        "total_pago": f.moeda(totalPago),
-                                        "total_parcela_corrigida": f.moeda(totalParcelaCorrigida),
-                                        "total_corrigido": f.moeda(totalCorrigido),
-                                        "total_juros": f.moeda(totalJurosAcumulado),
-                                        "total_mora": f.moeda(totalMulta),
-                                        "total_divida": f.moeda(totalMulta + totalBC),
-                                        "total_bc": f.moeda(totalBC),
-                                        "total_atualizado": f.moeda(totalAutalizado),
-                                    }
-
-                                progress_bar.UpdateBar(86)
-                                ## Gera o relatório e transforma em .pdf
-                                template = DocxTemplate('C:/Temp/Fichas_Graficas/Template2.docx')
-                                template.render(context)
-                                template.save(path_destino + '/' + tipo + '.docx')
-                                sys.stderr = open("C:/Temp/pdf_consoleoutput.log", "w")
-                                convert(f"{path_destino}/{tipo}.docx", f"{path_destino}/{tipo}_ALC_{alcada[0]}.pdf")
-                                os.remove(path_destino + '/' + tipo + '.docx')
-
-                        
                         path_final = os.path.realpath(path_destino)
                         os.startfile(path_final)
                         

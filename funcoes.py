@@ -491,7 +491,7 @@ def retornaCDI(cursor, ano, mes):
 
     return float(resultCDI[int(mes) - 1])
 
-def geraLancamento(cursor, parcelas, aplicaCDI, taxaDeJuros, totalPago, totalLiberado, tx_juros, alcada=None):
+def geraLancamento(cursor, parcelas, aplicaCDI, taxaDeJuros, totalPago, totalLiberado, tx_juros, isCresol, alcada=None):
     lancamentos = []
     totalJurosAcumulado = 0
     totalParcelaCorrigida = 0
@@ -519,6 +519,8 @@ def geraLancamento(cursor, parcelas, aplicaCDI, taxaDeJuros, totalPago, totalLib
 
         if descricaoParcela[0] == 'A':
             totalPago += float(valorParcela)
+            if isCresol:
+                valorParcela = float(valorParcela) * -1
         else:
             totalLiberado += float(valorParcela)
 
@@ -583,7 +585,7 @@ def geraArquivoPdf(parametros, multa, totalLiberado, totalPago, totalJurosAcumul
     convert(f'{path_destino}/{tipoCorrecao}.docx', arquivoSaida)
     os.remove(f'{path_destino}/{tipoCorrecao}.docx')
 
-def geraPDFCalculo(cursor, parametros, parcelas, tx_juros, multa, nomeAssociado, tipoCorrecao, nroTitulo, dataLiberacao, path_destino, adicionalMulta, adicionalHonorarios, adicionalOutrosValores, arquivoSaida, aplicaCDI=False, alcadas=None):
+def geraPDFCalculo(cursor, parametros, parcelas, tx_juros, multa, nomeAssociado, tipoCorrecao, nroTitulo, dataLiberacao, path_destino, adicionalMulta, adicionalHonorarios, adicionalOutrosValores, aplicaCDI=False, alcadas=None, isCresol=False):
     taxaDeJuros             = float(tx_juros)
     totalParcelaCorrigida   = 0
     parcelaCorrgida         = 0
@@ -596,14 +598,31 @@ def geraPDFCalculo(cursor, parametros, parcelas, tx_juros, multa, nomeAssociado,
     totalPago               = 0
 
     if alcadas is None:
-        result = geraLancamento(cursor, parcelas, aplicaCDI, taxaDeJuros, totalPago, totalLiberado, tx_juros)
+        result = geraLancamento(cursor, parcelas, aplicaCDI, taxaDeJuros, totalPago, totalLiberado, tx_juros, isCresol)
+        if aplicaCDI:
+            arquivoSaida = f"{path_destino}/{tipoCorrecao}_CDI.pdf"
+        else:
+            arquivoSaida = f"{path_destino}/{tipoCorrecao}.pdf"
         geraArquivoPdf(parametros, multa, totalLiberado, totalPago, result[1], adicionalMulta,
                        adicionalHonorarios, adicionalOutrosValores, nomeAssociado, tipoCorrecao, nroTitulo,
                        dataLiberacao, f"Multa de {percentualMulta} sobre o valor corrigido + juros principais + juros moratórios", result[0], result[2], path_destino, arquivoSaida)
     else:
+        result = geraLancamento(cursor, parcelas, aplicaCDI, taxaDeJuros, totalPago, totalLiberado, tx_juros, isCresol)
+        if aplicaCDI:
+            arquivoSaida = f"{path_destino}/{tipoCorrecao}_CDI.pdf"
+        else:
+            arquivoSaida = f"{path_destino}/{tipoCorrecao}.pdf"
+        geraArquivoPdf(parametros, multa, totalLiberado, totalPago, result[1], adicionalMulta,
+                       adicionalHonorarios, adicionalOutrosValores, nomeAssociado, tipoCorrecao, nroTitulo,
+                       dataLiberacao,
+                       f"Multa de {percentualMulta} sobre o valor corrigido + juros principais + juros moratórios",
+                       result[0], result[2], path_destino, arquivoSaida)
         for alcada in alcadas:
-            result = geraLancamento(cursor, parcelas, aplicaCDI, taxaDeJuros, totalPago, totalLiberado, tx_juros, alcada)
-            arquivoSaida = f"{path_destino}/{tipoCorrecao}_ALC_{alcada[0]}.pdf"
+            result = geraLancamento(cursor, parcelas, aplicaCDI, taxaDeJuros, totalPago, totalLiberado, tx_juros, isCresol, alcada)
+            if aplicaCDI:
+                arquivoSaida = f"{path_destino}/{tipoCorrecao}_CDI_ALC_{alcada[0]}.pdf"
+            else:
+                arquivoSaida = f"{path_destino}/{tipoCorrecao}_ALC_{alcada[0]}.pdf"
             geraArquivoPdf(parametros, multa, totalLiberado, totalPago, result[1], adicionalMulta,
                            adicionalHonorarios, adicionalOutrosValores, nomeAssociado, tipoCorrecao, nroTitulo,
                            dataLiberacao, f"Multa de {percentualMulta} sobre o valor corrigido na Alçada {alcada[0]} com Juros de {alcada[1]:,.2f}%", result[0], result[2], path_destino, arquivoSaida)

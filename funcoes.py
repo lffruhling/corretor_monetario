@@ -491,6 +491,41 @@ def retornaCDI(cursor, ano, mes):
 
     return float(resultCDI[int(mes) - 1])
 
+def retornaIGPM(cursor, ano, mes):
+    cursor.execute('SELECT jan, fev, mar, abr, mai, jun, jul, ago, `set`, `out`, nov, dez FROM igpm where ano = %s;',
+                   [ano])
+    result = cursor.fetchone()
+
+    return float(result[int(mes) - 1])
+
+def retornaINPC(cursor, ano, mes):
+    cursor.execute('SELECT jan, fev, mar, abr, mai, jun, jul, ago, `set`, `out`, nov, dez FROM inpc where ano = %s;',
+                   [ano])
+    result = cursor.fetchone()
+
+    return float(result[int(mes) - 1])
+
+def retornaIPCA(cursor, ano, mes):
+    cursor.execute('SELECT jan, fev, mar, abr, mai, jun, jul, ago, `set`, `out`, nov, dez FROM ipca where ano = %s;',
+                   [ano])
+    result = cursor.fetchone()
+
+    return float(result[int(mes) - 1])
+
+def retornaSEIC(cursor, ano, mes):
+    cursor.execute('SELECT jan, fev, mar, abr, mai, jun, jul, ago, `set`, `out`, nov, dez FROM selic where ano = %s;',
+                   [ano])
+    result = cursor.fetchone()
+
+    return float(result[int(mes) - 1])
+
+def retornaTR(cursor, ano, mes):
+    cursor.execute('SELECT jan, fev, mar, abr, mai, jun, jul, ago, `set`, `out`, nov, dez FROM tr where ano = %s;',
+                   [ano])
+    result = cursor.fetchone()
+
+    return float(result[int(mes) - 1])
+
 def geraLancamento(cursor, parcelas, aplicaCDI, taxaDeJuros, totalPago, totalLiberado, tx_juros, isCresol, alcada=None):
     lancamentos = []
     totalJurosAcumulado = 0

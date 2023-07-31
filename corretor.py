@@ -266,7 +266,7 @@ def main():
                 [frame_outros],                
                 [sg.Text(text='Aguardando Operação', key='ed_situacao', text_color="green")],
                 [sg.ProgressBar(100, orientation='h', size=(50, 4), key='progressbar', visible=False, expand_x=True)],
-                [sg.Button('Calcular'), sg.Button('Fechar'), sg.Button('Testar'), sg.Text('Host: ' + maquina + '   |   IP: '+ ip +'   |   '+ internet +'   |   Versão: ' + versao_exe + ' - ' + versao_descricao, expand_x=True, justification='right', font=("Verdana",8))]      
+                [sg.Button('Calcular'), sg.Button('Fechar'), sg.Text('Host: ' + maquina + '   |   IP: '+ ip +'   |   '+ internet +'   |   Versão: ' + versao_exe + ' - ' + versao_descricao, expand_x=True, justification='right', font=("Verdana",8))]      
              ]
     
     ## Itens da aba Importadas
@@ -595,7 +595,6 @@ def main():
                 cursor.close()
 
             if eventos == 'btn_salvar_parametros_gerais':
-                print('Salvar parâmetros gerais')
 
                 vincidencia_param = valores['ed_multa_incidencia_param']
 

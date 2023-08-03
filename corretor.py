@@ -284,7 +284,7 @@ def main():
                  ]    
 
     ## Itens da aba Parâmetros
-    parametros = [    
+    parametros = [ 
                     [sg.Text(text='Parâmetros', text_color="black", font=("Arial",12), expand_x=True, justification='center')],                                        
                     [sg.Text(text='Parâmetros Padrão do Sistema', text_color="black", font=("Arial",9), expand_x=True, justification='left')],
                     [sg.Text(text='Atenção: Opções definidas aqui serão carregadas como padrão para todos ao inicializar uma nova importação.', text_color="red", font=("Verdana",7), expand_x=True, justification='left')],
@@ -406,7 +406,37 @@ def main():
         alcadas = f.carregarParametrosAlcadas()
         for item in alcadas:
             fichas_alcadas.append(item)
-   
+
+    def senhaAdm():
+        sg.theme('Reddit')
+
+        layout_senha = [    
+                            [sg.Text(text='Senha Administrador', text_color="BLACK", font=("Arial"))],                                        
+                            [sg.Text(text='Insira a senha para acessar as configurações: ', text_color="BLACK", font=("Arial",10))],                      
+                            [sg.InputText(key='ed_senha', password_char='*')],                
+                            [sg.Button('Ok'), sg.Button('Fechar')]      
+                        ]
+        tela = sg.Window('Liberar Configurações', layout_senha, modal=True)
+
+        while True:                    
+            eventos, valores = tela.read(timeout=0.1)
+            
+            if eventos == 'Ok':            
+                valor = valores['ed_senha']
+
+                tela.Close()  
+
+                if valor == '1q2w3e4r':    
+                    return True
+                else:
+                    return False
+
+            if eventos == sg.WINDOW_CLOSED:
+                break
+            if eventos == 'Fechar':
+                tela.close()
+                return False
+            
     ## Primeiro verifica a licença, depois abre tela do sistema
     busca_licena = f.verificaLicenca() 
     if (busca_licena == 'THMPV-77D6F-94376-8HGKG-VRDRQ'):                
@@ -438,8 +468,11 @@ def main():
                 telaAlcadas()
 
             ## Chamar tela alçadas padrão(parâmetros)
-            if eventos == 'btn_alcadas_padrao':                               
-                telaAlcadas(True)
+            if eventos == 'btn_alcadas_padrao':
+                if senhaAdm():
+                    telaAlcadas(True)
+                else:
+                    sg.popup('Senha inválida. Acesso negado.')
 
             if eventos == 'btn_cancelar':
                 id_ficha_grafica = 0
@@ -596,46 +629,50 @@ def main():
 
             if eventos == 'btn_salvar_parametros_gerais':
 
-                vincidencia_param = valores['ed_multa_incidencia_param']
+                if senhaAdm():
+                    vincidencia_param = valores['ed_multa_incidencia_param']
 
-                ## Trata campos dos parâmetros
-                if valores['ed_multa_perc_param'] == '':
-                    vmulta_perc_param = 0
-                else:
-                    vmulta_perc_param = valores['ed_multa_perc_param'].replace(',','.')
-                    vmulta_perc_param = float(vmulta_perc_param)
+                    ## Trata campos dos parâmetros
+                    if valores['ed_multa_perc_param'] == '':
+                        vmulta_perc_param = 0
+                    else:
+                        vmulta_perc_param = valores['ed_multa_perc_param'].replace(',','.')
+                        vmulta_perc_param = float(vmulta_perc_param)
 
-                if valores['ed_multa_valor_param'] == '':
-                    vmulta_valor_param = 0
-                else:
-                    vmulta_valor_param = valores['ed_multa_valor_param'].replace(',','.')
-                    vmulta_valor_param = float(vmulta_valor_param)
+                    if valores['ed_multa_valor_param'] == '':
+                        vmulta_valor_param = 0
+                    else:
+                        vmulta_valor_param = valores['ed_multa_valor_param'].replace(',','.')
+                        vmulta_valor_param = float(vmulta_valor_param)
 
-                if valores['ed_honorarios_perc_param'] == '':
-                    vhonorarios_perc_param = 0
-                else:
-                    vhonorarios_perc_param = valores['ed_honorarios_perc_param'].replace(',','.')
-                    vhonorarios_perc_param = float(vhonorarios_perc_param)
+                    if valores['ed_honorarios_perc_param'] == '':
+                        vhonorarios_perc_param = 0
+                    else:
+                        vhonorarios_perc_param = valores['ed_honorarios_perc_param'].replace(',','.')
+                        vhonorarios_perc_param = float(vhonorarios_perc_param)
 
-                if valores['ed_honorarios_valor_param'] == '':
-                    vhonorarios_valor_param = 0
-                else:
-                    vhonorarios_valor_param = valores['ed_honorarios_valor_param'].replace(',','.')
-                    vhonorarios_valor_param = float(vhonorarios_valor_param)
-                
-                if valores['ed_outros_valor_param'] == '':
-                    voutros_valor_param = 0
-                else:
-                    voutros_valor_param = valores['ed_outros_valor_param'].replace(',','.')
-                    voutros_valor_param = float(voutros_valor_param)
+                    if valores['ed_honorarios_valor_param'] == '':
+                        vhonorarios_valor_param = 0
+                    else:
+                        vhonorarios_valor_param = valores['ed_honorarios_valor_param'].replace(',','.')
+                        vhonorarios_valor_param = float(vhonorarios_valor_param)
+                    
+                    if valores['ed_outros_valor_param'] == '':
+                        voutros_valor_param = 0
+                    else:
+                        voutros_valor_param = valores['ed_outros_valor_param'].replace(',','.')
+                        voutros_valor_param = float(voutros_valor_param)
 
-                try:
-                   if f.salvarParametrosGerais(valores['ed_igpm_param'], valores['ed_ipca_param'], valores['ed_cdi_param'], valores['ed_inpc_param'], valores['ed_tr_param'], vmulta_perc_param, vmulta_valor_param, vincidencia_param, vhonorarios_perc_param, vhonorarios_valor_param, voutros_valor_param):
-                       carregaParametros(tela)
-                       sg.popup('Parâmetros definidos com sucesso!')
-                except Exception as erro:
-                    sg.popup('Ocorreu um erro ao tentar salvar. ' + str(erro))    
-                    f.gravalog('Falha ao tentar salvar os parâmetros. ' + str(erro), True)                
+                    try:
+                        if f.salvarParametrosGerais(valores['ed_igpm_param'], valores['ed_ipca_param'], valores['ed_cdi_param'], valores['ed_inpc_param'], valores['ed_tr_param'], vmulta_perc_param, vmulta_valor_param, vincidencia_param, vhonorarios_perc_param, vhonorarios_valor_param, voutros_valor_param):
+                            carregaParametros(tela)
+                            sg.popup('Parâmetros definidos com sucesso!')
+                    except Exception as erro:
+                        sg.popup('Ocorreu um erro ao tentar salvar. ' + str(erro))    
+                        f.gravalog('Falha ao tentar salvar os parâmetros. ' + str(erro), True)                
+                else:
+                    sg.popup('Senha inválida. As alterações não serão gravadas.')
+                    carregaParametros(tela)
             
             if eventos == 'Calcular':
 

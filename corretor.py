@@ -762,10 +762,6 @@ def main():
                         cursor = db.cursor()
                         tipo = 'Correcao_Comum'
 
-                        totalJurosAcumulado     = 0
-                        totalMorasAcumulado     = 0
-                        totalParcelasAcumuladas = 0
-
                         adicionalMulta = float(parametros['multa_valor'])
                         adicionalHonorarios = float(parametros['honorarios_valor'])
                         adicionalOutrosValores = float(parametros['outros_valor'])
@@ -782,10 +778,20 @@ def main():
 
                         progress_bar.UpdateBar(75)
 
+                        indicesCorrecao = [
+                            {'nome':'S_C',  'ativo' :True},
+                            {'nome':'IGMP', 'ativo' :parametros['igpm']},
+                            {'nome':'IPCA', 'ativo' :parametros['ipca']},
+                            {'nome':'CDI',  'ativo' :parametros['cdi']},
+                            {'nome':'INPC', 'ativo' :parametros['inpc']},
+                            {'nome':'TR',   'ativo' :parametros['tr']},
+                        ]
+
                         # Caclula Juros Simples
                         f.geraPDFCalculo(cursor=cursor,
                                          parametros=parametros,
                                          parcelas=resultParcelas,
+                                         indicesCorrecao=indicesCorrecao,
                                          tx_juros=dados_cabecalho[7],
                                          multa=dados_cabecalho[8],
                                          nomeAssociado=dados_cabecalho[2],
@@ -798,27 +804,6 @@ def main():
                                          adicionalOutrosValores=adicionalOutrosValores,
                                          alcadas=fichas_alcadas,
                                          isCresol=versao == 'cresol')
-
-                        progress_bar.UpdateBar(80)
-                        if parametros['cdi']:
-                            progress_bar.UpdateBar(82)
-                            f.geraPDFCalculo(cursor=cursor,
-                                             parametros=parametros,
-                                             parcelas=resultParcelas,
-                                             tx_juros=dados_cabecalho[7],
-                                             multa=dados_cabecalho[8],
-                                             nomeAssociado=dados_cabecalho[2],
-                                             tipoCorrecao=tipo,
-                                             nroTitulo=dados_cabecalho[1],
-                                             dataLiberacao=dados_cabecalho[9].strftime('%d/%m/%Y'),
-                                             path_destino=path_destino,
-                                             adicionalMulta=adicionalMulta,
-                                             adicionalHonorarios=adicionalHonorarios,
-                                             adicionalOutrosValores=adicionalOutrosValores,
-                                             aplicaCDI=True,
-                                             alcadas=fichas_alcadas,
-                                             isCresol=versao == 'cresol')
-
                         progress_bar.UpdateBar(95)
 
                         path_final = os.path.realpath(path_destino)

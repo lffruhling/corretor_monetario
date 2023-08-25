@@ -487,44 +487,56 @@ def moeda(valor):
 def retornaCDI(cursor, ano, mes):
     cursor.execute('SELECT jan, fev, mar, abr, mai, jun, jul, ago, `set`, `out`, nov, dez FROM cdi where ano = %s;',
                    [ano])
-    resultCDI = cursor.fetchone()
+    result = cursor.fetchone()
 
-    return float(resultCDI[int(mes) - 1])
+    if result[int(mes) - 1] is not None:
+        return float(result[int(mes) - 1])
+    return 0
 
 def retornaIGPM(cursor, ano, mes):
     cursor.execute('SELECT jan, fev, mar, abr, mai, jun, jul, ago, `set`, `out`, nov, dez FROM igpm where ano = %s;',
                    [ano])
     result = cursor.fetchone()
 
-    return float(result[int(mes) - 1])
+    if result[int(mes) - 1] is not None:
+        return float(result[int(mes) - 1])
+    return 0
 
 def retornaINPC(cursor, ano, mes):
     cursor.execute('SELECT jan, fev, mar, abr, mai, jun, jul, ago, `set`, `out`, nov, dez FROM inpc where ano = %s;',
                    [ano])
     result = cursor.fetchone()
 
-    return float(result[int(mes) - 1])
+    if result[int(mes) - 1] is not None:
+        return float(result[int(mes) - 1])
+    return 0
 
 def retornaIPCA(cursor, ano, mes):
     cursor.execute('SELECT jan, fev, mar, abr, mai, jun, jul, ago, `set`, `out`, nov, dez FROM ipca where ano = %s;',
                    [ano])
     result = cursor.fetchone()
 
-    return float(result[int(mes) - 1])
+    if result[int(mes) - 1] is not None:
+        return float(result[int(mes) - 1])
+    return 0
 
 def retornaSEIC(cursor, ano, mes):
     cursor.execute('SELECT jan, fev, mar, abr, mai, jun, jul, ago, `set`, `out`, nov, dez FROM selic where ano = %s;',
                    [ano])
     result = cursor.fetchone()
 
-    return float(result[int(mes) - 1])
+    if result[int(mes) - 1] is not None:
+        return float(result[int(mes) - 1])
+    return 0
 
 def retornaTR(cursor, ano, mes):
     cursor.execute('SELECT jan, fev, mar, abr, mai, jun, jul, ago, `set`, `out`, nov, dez FROM tr where ano = %s;',
                    [ano])
     result = cursor.fetchone()
 
-    return float(result[int(mes) - 1])
+    if result[int(mes) - 1] is not None:
+        return float(result[int(mes) - 1])
+    return 0
 
 def geraLancamento(cursor, parcelas, indice, taxaDeJuros, totalPago, totalLiberado, tx_juros, isCresol, alcada=None):
     lancamentos = []
@@ -587,7 +599,9 @@ def geraLancamento(cursor, parcelas, indice, taxaDeJuros, totalPago, totalLibera
         totalParcelaCorrigida
     ]
 
-def geraArquivoPdf(parametros, multa, totalLiberado, totalPago, totalJurosAcumulado, adicionalMulta, adicionalHonorarios, adicionalOutrosValores, nomeAssociado, tipoCorrecao, nroTitulo, dataLiberacao, formaJuros, lancamentos, totalParcelaCorrigida, path_destino, arquivoSaida):
+def geraArquivoPdf(parametros, multa, totalLiberado, totalPago, totalJurosAcumulado, adicionalMulta, adicionalHonorarios,
+                   adicionalOutrosValores, nomeAssociado, tipoCorrecao, nroTitulo, dataLiberacao, formaJuros, lancamentos,
+                   totalParcelaCorrigida, path_destino, calculos, gerarArquivo=False):
     vMulta = 0
     if (multa is not None):
         vMulta = float(multa)
@@ -600,7 +614,7 @@ def geraArquivoPdf(parametros, multa, totalLiberado, totalPago, totalJurosAcumul
     totalMulta = (totalBC * 2) / 100
     totalAutalizado = totalCorrigido + totalJurosAcumulado + totalMulta + adicionalMulta + adicionalHonorarios + adicionalOutrosValores
 
-    context = {
+    calculo = {
         "nome_associado": nomeAssociado,
         "tipo_correcao": tipoCorrecao,
         "numero_titulo": nroTitulo,
@@ -621,13 +635,22 @@ def geraArquivoPdf(parametros, multa, totalLiberado, totalPago, totalJurosAcumul
         "adicional_outros": moeda(adicionalOutrosValores),
     }
 
-    ## Gera o relatório e transforma em .pdf
-    template = DocxTemplate('C:/Temp/Fichas_Graficas/Template2.docx')
-    template.render(context)
-    template.save(f'{path_destino}/{tipoCorrecao}.docx')
-    sys.stderr = open("C:/Temp/pdf_consoleoutput.log", "w")
-    convert(f'{path_destino}/{tipoCorrecao}.docx', arquivoSaida)
-    os.remove(f'{path_destino}/{tipoCorrecao}.docx')
+    if gerarArquivo:
+        ## Gera o relatório e transforma em .pdf
+        template = DocxTemplate('C:/Temp/Fichas_Graficas/Template3.docx')
+        template.render({
+            "calculos" : calculos,
+            "nome_associado": nomeAssociado,
+            "numero_titulo": nroTitulo,
+        })
+        vNomeArquivo = f'{path_destino}/CalculoTitulo_{nroTitulo}'
+        template.save(f'{vNomeArquivo}.docx')
+        sys.stderr = open("C:/Temp/pdf_consoleoutput.log", "w")
+        convert(f'{vNomeArquivo}.docx', f'{vNomeArquivo}.pdf')
+        os.remove(f'{vNomeArquivo}.docx')
+    else:
+        calculos.append(calculo)
+        return calculos
 
 def geraPDFCalculo(cursor, parametros, indicesCorrecao, parcelas, tx_juros, multa, nomeAssociado, tipoCorrecao, nroTitulo, dataLiberacao, path_destino, adicionalMulta, adicionalHonorarios, adicionalOutrosValores, alcadas,isCresol=False):
     taxaDeJuros             = float(tx_juros)
@@ -640,28 +663,34 @@ def geraPDFCalculo(cursor, parametros, indicesCorrecao, parcelas, tx_juros, mult
     totalAutalizado         = 0
     totalLiberado           = 0
     totalPago               = 0
+    calculos = []
 
+    iCount = 0
     for indice in indicesCorrecao:
         vNomeIndice = indice['nome']
         vIndiceAtivo = indice['ativo']
+        iCount += 1
 
         if vIndiceAtivo:
-            arquivoSaida = f"{path_destino}/{tipoCorrecao}_{vNomeIndice}.pdf"
             result = geraLancamento(cursor, parcelas, vNomeIndice, taxaDeJuros, totalPago, totalLiberado, tx_juros,
                                     isCresol)
-            geraArquivoPdf(parametros, multa, totalLiberado, totalPago, result[1], adicionalMulta,
+            calculos = geraArquivoPdf(parametros, multa, totalLiberado, totalPago, result[1], adicionalMulta,
                            adicionalHonorarios, adicionalOutrosValores, nomeAssociado, tipoCorrecao, nroTitulo,
                            dataLiberacao,
                            f"Multa de {percentualMulta} sobre o valor corrigido + juros principais + juros moratórios",
-                           result[0], result[2], path_destino, arquivoSaida)
+                           result[0], result[2], path_destino, calculos)
 
+            jCount = 0
             for alcada in alcadas:
-                arquivoSaida = f"{path_destino}/{tipoCorrecao}_{vNomeIndice}_ALC_{alcada[0]}.pdf"
                 result = geraLancamento(cursor, parcelas, vNomeIndice, taxaDeJuros, totalPago, totalLiberado, tx_juros,
                                         isCresol, alcada)
-                geraArquivoPdf(parametros, multa, totalLiberado, totalPago, result[1], adicionalMulta,
+
+                jCount += 1
+                vGeraArquivo = (jCount == len(alcadas) and iCount == len(indicesCorrecao))
+
+                calculos = geraArquivoPdf(parametros, multa, totalLiberado, totalPago, result[1], adicionalMulta,
                                adicionalHonorarios, adicionalOutrosValores, nomeAssociado, tipoCorrecao, nroTitulo,
                                dataLiberacao,
                                f"Multa de {percentualMulta} sobre o valor corrigido na Alçada {alcada[0]} com Juros de {alcada[1]:,.2f}%",
-                               result[0], result[2], path_destino, arquivoSaida)
+                               result[0], result[2], path_destino, calculos, vGeraArquivo)
 

@@ -257,7 +257,7 @@ def main():
     
     ## Itens da aba Principal
     principal = [    
-                [sg.Text(text='Corretor Monetário', text_color="Black", font=("Arial",22, "bold"), expand_x=True, justification='center')],                                      
+                [sg.Text(text='Sistema de Cálculo', text_color="Black", font=("Arial",22, "bold"), expand_x=True, justification='center')],                                      
                 [frame_arquivo],      
                 [frame_informacoes],                                              
                 [frame_indices],    

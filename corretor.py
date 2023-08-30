@@ -795,7 +795,6 @@ def main():
                                          tx_juros=dados_cabecalho[7],
                                          multa=dados_cabecalho[8],
                                          nomeAssociado=dados_cabecalho[2],
-                                         tipoCorrecao=tipo,
                                          nroTitulo=dados_cabecalho[1],
                                          dataLiberacao=dados_cabecalho[9].strftime('%d/%m/%Y'),
                                          path_destino=path_destino,

@@ -570,7 +570,7 @@ def geraLancamento(cursor, parcelas, indice, taxaDeJuros, totalPago, totalLibera
             parcelaCorrgida = valorParcela + ((valorParcela * txIndice) / 100)
             resultParcela = calculaParcela(parcelaCorrgida, taxaDeJuros, totalMeses)
         else:
-            parcelaCorrgida = valorParcela
+            parcelaCorrgida = valorParcela + ((valorParcela * txIndice) / 100)
             resultParcela = calculaParcela(valorParcela, taxaDeJuros, totalMeses)
 
         if descricaoParcela[0] == 'A':
@@ -601,7 +601,7 @@ def geraLancamento(cursor, parcelas, indice, taxaDeJuros, totalPago, totalLibera
 
 def geraArquivoPdf(parametros, multa, totalLiberado, totalPago, totalJurosAcumulado, adicionalMulta, adicionalHonorarios,
                    adicionalOutrosValores, nomeAssociado, tipoCorrecao, nroTitulo, dataLiberacao, formaJuros, lancamentos,
-                   totalParcelaCorrigida, path_destino, calculos, gerarArquivo=False):
+                   totalParcelaCorrigida, path_destino, calculos, gerarArquivo=False, nroAlcada=""):
     vMulta = 0
     if (multa is not None):
         vMulta = float(multa)
@@ -633,6 +633,7 @@ def geraArquivoPdf(parametros, multa, totalLiberado, totalPago, totalJurosAcumul
         "adicional_multa": moeda(adicionalMulta),
         "adicional_honorarios": moeda(adicionalHonorarios),
         "adicional_outros": moeda(adicionalOutrosValores),
+        "alcada":nroAlcada,
     }
 
     if gerarArquivo:
@@ -652,7 +653,7 @@ def geraArquivoPdf(parametros, multa, totalLiberado, totalPago, totalJurosAcumul
         calculos.append(calculo)
         return calculos
 
-def geraPDFCalculo(cursor, parametros, indicesCorrecao, parcelas, tx_juros, multa, nomeAssociado, tipoCorrecao, nroTitulo, dataLiberacao, path_destino, adicionalMulta, adicionalHonorarios, adicionalOutrosValores, alcadas,isCresol=False):
+def geraPDFCalculo(cursor, parametros, indicesCorrecao, parcelas, tx_juros, multa, nomeAssociado, nroTitulo, dataLiberacao, path_destino, adicionalMulta, adicionalHonorarios, adicionalOutrosValores, alcadas,isCresol=False):
     taxaDeJuros             = float(tx_juros)
     totalParcelaCorrigida   = 0
     parcelaCorrgida         = 0
@@ -674,8 +675,13 @@ def geraPDFCalculo(cursor, parametros, indicesCorrecao, parcelas, tx_juros, mult
         if vIndiceAtivo:
             result = geraLancamento(cursor, parcelas, vNomeIndice, taxaDeJuros, totalPago, totalLiberado, tx_juros,
                                     isCresol)
+
+            vNomeIndiceArquivo = vNomeIndice
+            if vNomeIndiceArquivo == 'S_C':
+                vNomeIndiceArquivo = 'Sem Correção'
+
             calculos = geraArquivoPdf(parametros, multa, totalLiberado, totalPago, result[1], adicionalMulta,
-                           adicionalHonorarios, adicionalOutrosValores, nomeAssociado, tipoCorrecao, nroTitulo,
+                           adicionalHonorarios, adicionalOutrosValores, nomeAssociado, vNomeIndiceArquivo, nroTitulo,
                            dataLiberacao,
                            f"Multa de {percentualMulta} sobre o valor corrigido + juros principais + juros moratórios",
                            result[0], result[2], path_destino, calculos)
@@ -688,9 +694,13 @@ def geraPDFCalculo(cursor, parametros, indicesCorrecao, parcelas, tx_juros, mult
                 jCount += 1
                 vGeraArquivo = (jCount == len(alcadas) and iCount == len(indicesCorrecao))
 
+                vNomeIndiceArquivo = vNomeIndice
+                if vNomeIndiceArquivo == 'S_C':
+                    vNomeIndiceArquivo = 'Sem Correção'
+
                 calculos = geraArquivoPdf(parametros, multa, totalLiberado, totalPago, result[1], adicionalMulta,
-                               adicionalHonorarios, adicionalOutrosValores, nomeAssociado, tipoCorrecao, nroTitulo,
+                               adicionalHonorarios, adicionalOutrosValores, nomeAssociado, vNomeIndiceArquivo, nroTitulo,
                                dataLiberacao,
                                f"Multa de {percentualMulta} sobre o valor corrigido na Alçada {alcada[0]} com Juros de {alcada[1]:,.2f}%",
-                               result[0], result[2], path_destino, calculos, vGeraArquivo)
+                               result[0], result[2], path_destino, calculos, vGeraArquivo, f"Alçada {alcada[0]} com Juros de {alcada[1]:,.2f}%")
 

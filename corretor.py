@@ -17,6 +17,8 @@ from docx2pdf import convert
 #Interface
 import PySimpleGUI as sg
 
+versaoExe = '1.0.1'
+
 vPath    = 'C:/Temp/Fichas_Graficas'
 versao   = ''
 lancamentos       = []
@@ -366,6 +368,11 @@ def main():
 
     def carregaParametros(tela):
         ## Carrega os valores dos parametros do BD e alimenta os campos na tela
+        
+        versaoBanco = f.BuscaUltimaVersao()
+        if versaoExe != versaoBanco:
+            f.atualizacaoDisponivel()
+            #atualizador.telaAtualizador()
 
         parametros = f.carregaParametrosGerais()
 

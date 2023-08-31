@@ -361,6 +361,28 @@ def BuscaUltimaVersao():
             return None
     except Exception as erro:
         gravalog('Ocorreu um erro ao tentar carregar a última versão gerada. '  + str(erro), True)   
+        
+def atualizacaoDisponivel():
+    sg.theme('Reddit')
+
+    layout_atualizacao = [    
+                [sg.Text(text='Atenção: Existe uma Atualização Disponível', text_color="BLACK", font=("Arial"))],
+                [sg.Button('Atualizar Agora', key="btn_atualizar"), sg.Button('Depois', key="btn_cancelar")]      
+             ]
+    tela_atualizacao = sg.Window('Atualização Disponível', layout_atualizacao, modal=True)
+
+    while True:                    
+        eventos, valores = tela_atualizacao.read(timeout=0.1)
+        
+        if eventos == 'btn_atualizar':            
+            if os.path.isfile('C:/Temp/atualizador/atualizador.exe'):
+                os.startfile('C:/Temp/atualizador/atualizador.exe')
+                tela_atualizacao.Close()
+
+        if eventos == sg.WINDOW_CLOSED:
+            break
+        if eventos == 'btn_cancelar':
+            tela_atualizacao.close()    
 
 def verificaLicenca():
     try:

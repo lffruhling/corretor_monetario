@@ -778,14 +778,18 @@ def main():
 
                         progress_bar.UpdateBar(75)
 
-                        indicesCorrecao = [
-                            {'nome':'S_C',  'ativo' :True},
-                            {'nome':'IGMP', 'ativo' :parametros['igpm']},
-                            {'nome':'IPCA', 'ativo' :parametros['ipca']},
-                            {'nome':'CDI',  'ativo' :parametros['cdi']},
-                            {'nome':'INPC', 'ativo' :parametros['inpc']},
-                            {'nome':'TR',   'ativo' :parametros['tr']},
-                        ]
+                        indicesCorrecao = [{'nome':'S_C', 'ativo' :True}]
+
+                        if parametros['igpm']:
+                            indicesCorrecao.append({'nome': 'IGMP', 'ativo': True})
+                        if parametros['ipca']:
+                            indicesCorrecao.append({'nome': 'IPCA', 'ativo': True})
+                        if parametros['cdi']:
+                            indicesCorrecao.append({'nome': 'CDI', 'ativo': True})
+                        if parametros['inpc']:
+                            indicesCorrecao.append({'nome': 'INPC', 'ativo': True})
+                        if parametros['tr']:
+                            indicesCorrecao.append({'nome': 'TR', 'ativo': True})
 
                         # Caclula Juros Simples
                         f.geraPDFCalculo(cursor=cursor,

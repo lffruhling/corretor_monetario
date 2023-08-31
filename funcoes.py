@@ -16,7 +16,7 @@ import sys
 
 
 def conexao():
-    #return MySQLdb.connect(host="10.4.21.24", user='root', passwd='*Sicred1',db='db_teste')
+    # return MySQLdb.connect(host="10.4.21.24", user='root', passwd='*Sicred1',db='db_teste')
     return MySQLdb.connect(host="mysql.edersondallabrida.com", user=c.USUARIO_DB1, passwd=c.SENHA_DB1,db=c.NOME_DB1)
     
 def download():
@@ -538,7 +538,7 @@ def retornaTR(cursor, ano, mes):
         return float(result[int(mes) - 1])
     return 0
 
-def geraLancamento(cursor, parcelas, indice, taxaDeJuros, totalPago, totalLiberado, tx_juros, isCresol, alcada=None):
+def geraLancamento(cursor, parcelas, indice, taxaDeJuros, totalPago, totalLiberado, isCresol, alcada=None):
     lancamentos = []
     totalJurosAcumulado = 0
     totalParcelaCorrigida = 0
@@ -550,6 +550,7 @@ def geraLancamento(cursor, parcelas, indice, taxaDeJuros, totalPago, totalLibera
         descricaoParcela = parcela[2]
         if alcada is not None:
             txIndice = alcada[1]
+            # taxaDeJuros += txIndice
         else:
             txIndice = 0
 
@@ -571,7 +572,7 @@ def geraLancamento(cursor, parcelas, indice, taxaDeJuros, totalPago, totalLibera
             resultParcela = calculaParcela(parcelaCorrgida, taxaDeJuros, totalMeses)
         else:
             parcelaCorrgida = valorParcela + ((valorParcela * txIndice) / 100)
-            resultParcela = calculaParcela(valorParcela, taxaDeJuros, totalMeses)
+            resultParcela = calculaParcela(parcelaCorrgida, taxaDeJuros, totalMeses)
 
         if descricaoParcela[0] == 'A':
             totalPago += float(valorParcela)
@@ -584,7 +585,7 @@ def geraLancamento(cursor, parcelas, indice, taxaDeJuros, totalPago, totalLibera
             "data": parcela[0].strftime('%d/%m/%Y'),
             "descricao": descricaoParcela,
             "valor": moeda(valorParcela),
-            "correcao": f'{tx_juros:,.2f}%',
+            "correcao": f'{txIndice:,.2f}%',
             "corrigido": moeda(parcelaCorrgida),
             "juros": moeda(resultParcela['totalJuros']),
             "total": moeda(resultParcela['parcelaAtualizada']),
@@ -638,9 +639,9 @@ def geraArquivoPdf(parametros, multa, totalLiberado, totalPago, totalJurosAcumul
 
     if gerarArquivo:
         ## Gera o relatório e transforma em .pdf
-        template = DocxTemplate('C:/Temp/Fichas_Graficas/Template3.docx')
+        template = DocxTemplate('relatorio/Template3.docx')
         template.render({
-            "calculos" : calculos,
+            "calculos": calculos,
             "nome_associado": nomeAssociado,
             "numero_titulo": nroTitulo,
         })
@@ -673,8 +674,7 @@ def geraPDFCalculo(cursor, parametros, indicesCorrecao, parcelas, tx_juros, mult
         iCount += 1
 
         if vIndiceAtivo:
-            result = geraLancamento(cursor, parcelas, vNomeIndice, taxaDeJuros, totalPago, totalLiberado, tx_juros,
-                                    isCresol)
+            result = geraLancamento(cursor, parcelas, vNomeIndice, taxaDeJuros, totalPago, totalLiberado, isCresol)
 
             vNomeIndiceArquivo = vNomeIndice
             if vNomeIndiceArquivo == 'S_C':
@@ -688,8 +688,7 @@ def geraPDFCalculo(cursor, parametros, indicesCorrecao, parcelas, tx_juros, mult
 
             jCount = 0
             for alcada in alcadas:
-                result = geraLancamento(cursor, parcelas, vNomeIndice, taxaDeJuros, totalPago, totalLiberado, tx_juros,
-                                        isCresol, alcada)
+                result = geraLancamento(cursor, parcelas, vNomeIndice, taxaDeJuros, totalPago, totalLiberado, isCresol, alcada)
 
                 jCount += 1
                 vGeraArquivo = (jCount == len(alcadas) and iCount == len(indicesCorrecao))

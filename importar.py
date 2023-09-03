@@ -351,10 +351,11 @@ def importaFichaGrafica(vCaminhoTxt, informacoes=False):
         cursor.fetchall()
         db.commit()
 
-        vsql = 'INSERT INTO ficha_grafica(versao, associado, liberacao, nro_parcelas, parcela, situacao, titulo, tx_juro, valor_financiado, modalidade_amortizacao, entrada_prejuizo)\
-            VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+        vsql = 'INSERT INTO ficha_grafica(versao, associado, liberacao, nro_parcelas, parcela, situacao, titulo, tx_juro, valor_financiado, modalidade_amortizacao, entrada_prejuizo, data_importacao)\
+            VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
         
-        parametros = ('sicredi', str(associado), liberacao, nro_parcelas, parcela, 'ATIVO', titulo, taxa_juro, valor_financiado, modalidade_amortizacao, dataEntradaPrejuizo)
+        data_atual = date.today()
+        parametros = ('sicredi', str(associado), liberacao, nro_parcelas, parcela, 'ATIVO', titulo, taxa_juro, valor_financiado, modalidade_amortizacao, dataEntradaPrejuizo, data_atual)
 
         cursor.execute(vsql, parametros)
         resultado = cursor.fetchall()

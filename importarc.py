@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 import funcoes as f
 import time
 
@@ -133,10 +133,11 @@ def importar_cabecalho(vArquivoTxt, informacoes=False):
         cursor.fetchall()
         db.commit()
 
-        vsql = 'INSERT INTO ficha_grafica(versao, associado, liberacao, nro_parcelas, parcela, situacao, titulo, tx_juro, multa, valor_financiado, modalidade_amortizacao)\
-            VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+        vsql = 'INSERT INTO ficha_grafica(versao, associado, liberacao, nro_parcelas, parcela, situacao, titulo, tx_juro, multa, valor_financiado, modalidade_amortizacao, data_importacao)\
+            VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
         
-        parametros = ('cresol', str(associado), data_liberacao, parcelas, parcela, 'ATIVO', titulo, tx_juro, multa, valor_financiado, modalidade_amortizacao)
+        data_atual = date.today()
+        parametros = ('cresol', str(associado), data_liberacao, parcelas, parcela, 'ATIVO', titulo, tx_juro, multa, valor_financiado, modalidade_amortizacao, data_atual)
 
         cursor.execute(vsql, parametros)
         resultado = cursor.fetchall()

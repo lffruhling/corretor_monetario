@@ -282,7 +282,7 @@ def main():
     importadas = [    
                     [sg.Text(text='Fichas Importadas', text_color="black", font=("Arial",12), expand_x=True, justification='center')],
                     [frame_filtros],
-                    [sg.Table(values=fichas_importadas, headings=['ID', 'Título', 'Versão', 'Associado', 'N° Parcelas', 'Valor Financiado', 'Taxa Juros'], auto_size_columns=True, display_row_numbers=False, justification='center', key='-TABLE-', selected_row_colors='red on yellow', enable_events=True, expand_x=True, expand_y=True,enable_click_events=True)]                    
+                    [sg.Table(values=fichas_importadas, headings=['ID','Data', 'Título', 'Versão', 'Associado', 'N° Parcelas', 'Valor Financiado', 'Taxa Juros'], auto_size_columns=True, display_row_numbers=False, justification='center', key='-TABLE-', selected_row_colors='red on yellow', enable_events=True, expand_x=True, expand_y=True,enable_click_events=True)]                    
                  ]    
 
     ## Itens da aba Parâmetros
@@ -620,7 +620,7 @@ def main():
                 
                 vfiltros = v_titulo_filtro + ' ' + v_associado_filtro
                 
-                sql_consulta = 'SELECT f.id,f.titulo,f.versao,f.associado,f.nro_parcelas,f.valor_financiado,f.tx_juro FROM ficha_grafica as f WHERE f.situacao="ATIVO" ' + vfiltros + ' order by id DESC'
+                sql_consulta = 'SELECT f.id,coalesce(DATE_FORMAT(f.data_importacao, "%d/%m/%Y"),"") as data_importacao,f.titulo,f.versao,f.associado,f.nro_parcelas,f.valor_financiado,f.tx_juro FROM ficha_grafica as f WHERE f.situacao="ATIVO" ' + vfiltros + ' order by id DESC'
                 
                 cursor.execute(sql_consulta)
                 dados = cursor.fetchall()

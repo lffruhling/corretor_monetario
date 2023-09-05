@@ -449,7 +449,7 @@ def main():
     if (busca_licena == 'THMPV-77D6F-94376-8HGKG-VRDRQ'):                
         f.gravalog('Iniciado - Licença Ok')
         #Inicia o corretor
-        tela         = sg.Window('Corretor', tabgrp, size=(None,None))
+        tela         = sg.Window('Sistema de Cálculo - Fortes&Fortes', tabgrp, size=(None,None))
         progress_bar = tela['progressbar']
 
         carregou_parametros = False

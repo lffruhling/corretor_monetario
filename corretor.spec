@@ -8,7 +8,7 @@ a = Analysis(
     ['corretor.pyw'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('logo1.png', '.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

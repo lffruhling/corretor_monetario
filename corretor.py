@@ -17,7 +17,7 @@ from docx2pdf import convert
 #Interface
 import PySimpleGUI as sg
 
-versaoExe = '1.0.1'
+versaoExe = '1.0.0'
 
 vPath    = 'C:/Temp/Fichas_Graficas'
 versao   = ''
@@ -259,7 +259,7 @@ def main():
     
     ## Itens da aba Principal
     principal = [    
-                [sg.Text(text='Sistema de Cálculo', text_color="Black", font=("Arial",22, "bold"), expand_x=True, justification='center')],                                      
+                [sg.Text('                                                       '),sg.Image(filename='logo1.png'),sg.Text(text='Sistema de Cálculo', text_color="Black", font=("Arial",22, "bold"), expand_x=True, justification='left')],                                                      
                 [frame_arquivo],      
                 [frame_informacoes],                                              
                 [frame_indices],    
@@ -620,7 +620,7 @@ def main():
                 
                 vfiltros = v_titulo_filtro + ' ' + v_associado_filtro
                 
-                sql_consulta = 'SELECT f.id,coalesce(DATE_FORMAT(f.data_importacao, "%d/%m/%Y"),"") as data_importacao,f.titulo,f.versao,f.associado,f.nro_parcelas,f.valor_financiado,f.tx_juro FROM ficha_grafica as f WHERE f.situacao="ATIVO" ' + vfiltros + ' order by id DESC'
+                sql_consulta = 'SELECT f.id,coalesce(DATE_FORMAT(f.data_importacao, "%d/%m/%Y"),"") as data_importacao,f.titulo,f.versao,f.associado,f.nro_parcelas,format(f.valor_financiado,2) as valor_financiado,format(f.tx_juro,2) as tx_juro FROM ficha_grafica as f WHERE f.situacao="ATIVO" ' + vfiltros + ' order by id DESC'
                 
                 cursor.execute(sql_consulta)
                 dados = cursor.fetchall()

@@ -17,7 +17,7 @@ from docx2pdf import convert
 #Interface
 import PySimpleGUI as sg
 
-versaoExe = '1.0.0'
+versaoExe = '1.0.1'
 
 vPath    = 'C:/Temp/Fichas_Graficas'
 versao   = ''
@@ -70,7 +70,7 @@ def converterPDF(vCaminho_arquivo):
     
         return None    
     
-def telaAlcadas(parametrosGerais=False):       
+def telaAlcadas(parametrosGerais=False, cooperativa=None):       
     global fichas_alcadas 
 
     if (parametrosGerais): 
@@ -79,14 +79,19 @@ def telaAlcadas(parametrosGerais=False):
 
         for item in retorno:
             dados.append(item)          
+            
+        carregou_coop = True
     else:        
         dados = fichas_alcadas
+        carregou_coop = False
 
     sg.theme('Reddit')
     
     alcadas = [    
                 [sg.Text(text='Definição de Alçadas', text_color="Black", font=("Arial",12, "bold"), expand_x=True, justification='center')],  
-                [sg.Table(values=dados, headings=['Alçada', 'Perc. %'], auto_size_columns=True, display_row_numbers=False, justification='center', key='-TABLE_ALCADAS-', selected_row_colors='red on yellow', enable_events=True, expand_x=True, expand_y=True,enable_click_events=True)],
+                [sg.Table(values=dados, headings=['Cooperativa','Alçada', 'Perc. %'], auto_size_columns=True, display_row_numbers=False, justification='center', key='-TABLE_ALCADAS-', selected_row_colors='red on yellow', enable_events=True, expand_x=True, expand_y=True,enable_click_events=True)],
+                [sg.Text(text="Cooperativa:", font=("Arial",10, "bold"))],    
+                [sg.Combo(['Padrão','Sicredi Raízes', 'Sicredi Conexão', 'Sicredi Região da Produção', 'Cresol Raiz', 'Cresol Gerações'], key="ed_cooperativa", enable_events=True, expand_x=True)],
                 [sg.Text(text='Alçada %: '),sg.Input(key='ed_valor_alcada', size=(15,1), enable_events=True),sg.Button(' + Adicionar', key='btn_incluir_alcadas'), sg.Button(' - Remover', key='btn_remover_alcadas')],
                 [sg.Button('Salvar', key='btn_salvar_alcadas'), sg.Button('Cancelar', key='btn_cancelar_alcadas')]      
               ]
@@ -95,6 +100,9 @@ def telaAlcadas(parametrosGerais=False):
 
     while True:                
         eventos, valores = tela.read(timeout=0.1)
+        
+        if not(carregou_coop):
+            tela['ed_cooperativa'].update(cooperativa)
 
         if eventos == 'ed_valor_alcada': 
             if valores['ed_valor_alcada'] != '':                  
@@ -123,15 +131,16 @@ def telaAlcadas(parametrosGerais=False):
 
         if eventos == 'btn_incluir_alcadas':
             i = 1            
-            for alcadas in dados:            
-                i = i + 1
+            for alcadas in dados:
+                if valores['ed_cooperativa'] == alcadas[0]:
+                    i = i + 1
 
             if valores['ed_valor_alcada'] == '':
                 sg.popup('É necessário informar um percentual')
             else:
 
                 if float(valores['ed_valor_alcada'].replace(",",".")) > 0:                    
-                    dados.append([i,valores['ed_valor_alcada'].replace(",",".")])                    
+                    dados.append([valores['ed_cooperativa'],i,valores['ed_valor_alcada'].replace(",",".")])                    
                     tela['ed_valor_alcada'].update('')                    
                     tela['-TABLE_ALCADAS-'].update(values=dados)
 
@@ -200,6 +209,8 @@ def main():
     lista_indices.append(sg.Checkbox(text='INPC', key='ed_inpc',disabled=True))
     lista_indices.append(sg.Checkbox(text='TR', key='ed_tr', disabled=True))
     lista_indices.append(sg.Button("Alçadas", key='btn_alcadas'))
+    lista_indices.append(sg.Text("Alçada Carregada"))
+    lista_indices.append(sg.Combo(['Padrão','Sicredi Raízes', 'Sicredi Conexão', 'Sicredi Região da Produção', 'Cresol Raiz', 'Cresol Gerações'], key="ed_alcada_carregada", enable_events=True, expand_x=True))
     frame_indices = sg.Frame('Índices de Correção', [lista_indices], expand_x=True)
 
     lista_informacoes = []
@@ -351,11 +362,15 @@ def main():
 
             if f.identificaVersao(arquivo_tmp) == 'cresol':
                 ## Utiliza a mesma função de importar, porém, definido flag para True
-                dados = cresol.importar_cabecalho(arquivo_tmp, True)                
+                dados, cooperativa_selecionada = cresol.importar_cabecalho(arquivo_tmp, True)
+                tela['ed_alcada_carregada'].update(cooperativa_selecionada)
+                carregaAlcadasPadrao(cooperativa_selecionada)
             else:
                 ## Utiliza a mesma função de importar, porém, definido flag para True
-                dados = sicredi.importaFichaGrafica(arquivo_tmp, True)                
-
+                dados, cooperativa_selecionada = sicredi.importaFichaGrafica(arquivo_tmp, True)
+                tela['ed_alcada_carregada'].update(cooperativa_selecionada)
+                carregaAlcadasPadrao(cooperativa_selecionada)
+            
             for l in dados:
                 informacoes = informacoes + ' ' + str(l) + '\n'
 
@@ -373,6 +388,8 @@ def main():
         if versaoExe != versaoBanco:
             f.atualizacaoDisponivel()
             #atualizador.telaAtualizador()
+            
+        tela['ed_alcada_carregada'].update('Padrão')
 
         parametros = f.carregaParametrosGerais()
 
@@ -406,11 +423,11 @@ def main():
             print('Carregou os parâmetros padrão.')
         return True
         
-    def carregaAlcadasPadrao():
+    def carregaAlcadasPadrao(cooperativa=None):
         global fichas_alcadas
 
         fichas_alcadas = []
-        alcadas = f.carregarParametrosAlcadas()
+        alcadas = f.carregarParametrosAlcadas(cooperativa)
         for item in alcadas:
             fichas_alcadas.append(item)
 
@@ -472,7 +489,7 @@ def main():
 
             ## Chamar tela das alçadas
             if eventos == 'btn_alcadas':                               
-                telaAlcadas()
+                telaAlcadas(False, valores['ed_alcada_carregada'])
 
             ## Chamar tela alçadas padrão(parâmetros)
             if eventos == 'btn_alcadas_padrao':
@@ -601,7 +618,7 @@ def main():
                 if valores['ed_outros_valor_param'] != '':          
                     if valores['ed_outros_valor_param'][-1] not in ('0123456789,.'):                                                
                         tela['ed_outros_valor_param'].update(valores['ed_outros_valor_param'][:-1])
-
+            
             if eventos == 'btn_atualizar_importadas':                                                 
                 db     = f.conexao()
                 cursor = db.cursor()

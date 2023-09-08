@@ -41,12 +41,19 @@ def importar_cabecalho(vArquivoTxt, informacoes=False):
         else:
             f.gravalog('Inicia Importação Cabeçalho Cresol. Arquivo: ' + str(vArquivoTxt))    
 
+    cooperativa_carregada = 'Padrão'
     global titulo
     global modalidade_amortizacao
     with open(vArquivoTxt, 'r') as arquivo:        
         vlinha = 1
         for linha in arquivo:                                    
             if vlinha <= 50:
+                if ("Cód. Cooperativa" in linha and vlinha <= 5):
+                    if('GERAÇÕES' in linha):
+                        cooperativa_carregada = 'Cresol Gerações'
+                    if('RAÍZ' in linha):
+                        cooperativa_carregada = 'Cresol Raíz'
+                
                 if("Parcelas:" in linha):                
                     parcelas = int(linha[10:15].replace(" ",""))
 
@@ -123,7 +130,8 @@ def importar_cabecalho(vArquivoTxt, informacoes=False):
     ## Executa a Inserção do cabeçalho no BD
 
     if informacoes:
-        return 'Coop.: Cresol   Modalidade: ' + str(modalidade_amortizacao), 'Associado: '+ str(associado), 'Data de Liberação: ' + str(data_liberacao.strftime('%d/%m/%Y')), 'Número de Parcelas: ' + str(parcelas), parcela, 'Título: ' + titulo, 'Taxa de Juros: ' + str(tx_juro), 'Multa: ' + str(multa), 'Valor Financiado: ' + str(valor_financiado)
+        infos = 'Coop.: Cresol   Modalidade: ' + str(modalidade_amortizacao), 'Associado: '+ str(associado), 'Data de Liberação: ' + str(data_liberacao.strftime('%d/%m/%Y')), 'Número de Parcelas: ' + str(parcelas), parcela, 'Título: ' + titulo, 'Taxa de Juros: ' + str(tx_juro), 'Multa: ' + str(multa), 'Valor Financiado: ' + str(valor_financiado)
+        return infos, cooperativa_carregada
     else:
         db     = f.conexao()
         cursor = db.cursor()

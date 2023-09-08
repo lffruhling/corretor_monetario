@@ -284,13 +284,23 @@ def importaFichaGrafica(vCaminhoTxt, informacoes=False):
     titulo           = ''
     modalidade_amortizacao = ''
     dataEntradaPrejuizo = None
+    cooperativa_carregada = 'Padrão'
 
     with open(vCaminhoTxt, 'r') as reader:
         
         ficha_grafica = reader.readlines()  
                     
         vlinha = 1        
-        for linha in ficha_grafica:         
+        for linha in ficha_grafica:
+            if ("COOPERATIVA" in linha and vlinha <= 5):
+                if('INVESTIMENTO CONEXAO' in linha):
+                    cooperativa_carregada = 'Sicredi Conexão'
+                if('REGIAO DA PRODUCAO' in linha):
+                    cooperativa_carregada = 'Sicredi Região da Produção'
+                if('INVESTIMENTO ALTO URUGUAI' in linha):
+                    cooperativa_carregada = 'Sicredi Conexão'
+                if('RAIZES' in linha):
+                    cooperativa_carregada = 'Sicredi Raízes'
 
             if ("TITULO:" in linha and vlinha <= 5):
                 pos_inicial = linha.find("TITULO:")
@@ -341,7 +351,8 @@ def importaFichaGrafica(vCaminhoTxt, informacoes=False):
         print('Data Entrada Prejuizo: ' + str(dataEntradaPrejuizo)) #Salvar a data de entrada no prejuizo na base
 
     if informacoes:
-        return 'Coop: Sicredi   Modalidade: ' + str(modalidade_amortizacao), 'Associado: ' + str(associado), 'Data de Liberação: ' + str(liberacao.strftime('%d/%m/%Y')), 'Número de Parcelas: ' + str(nro_parcelas), 'Parcela atual: ' + str(parcela), 'Título: ' + str(titulo), 'Taxa de Juros: ' + str(taxa_juro), 'Valor Financiado: ' + str(valor_financiado), 'Data da Inadimplência: ' + dataEntradaPrejuizo.strftime("%d/%m/%Y")
+        infos = 'Coop: Sicredi   Modalidade: ' + str(modalidade_amortizacao), 'Associado: ' + str(associado), 'Data de Liberação: ' + str(liberacao.strftime('%d/%m/%Y')), 'Número de Parcelas: ' + str(nro_parcelas), 'Parcela atual: ' + str(parcela), 'Título: ' + str(titulo), 'Taxa de Juros: ' + str(taxa_juro), 'Valor Financiado: ' + str(valor_financiado), 'Data da Inadimplência: ' + dataEntradaPrejuizo.strftime("%d/%m/%Y")
+        return infos, cooperativa_carregada
     else:            
         db     = f.conexao()
         cursor = db.cursor()

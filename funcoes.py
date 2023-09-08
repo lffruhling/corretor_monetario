@@ -58,11 +58,11 @@ def salvaParametrosAlcadas(alcadas=[]):
     db.commit()    
     
     for alcada in alcadas:        
-        vsql = 'INSERT INTO parametros_alcadas(alcada, valor, situacao)\
-                VALUES(%s,%s,%s)'
+        vsql = 'INSERT INTO parametros_alcadas(cooperativa, alcada, valor, situacao)\
+                VALUES(%s,%s,%s,%s)'
         
         #valor = alcada[1].replace(",",".")
-        parametros = (alcada[0], float(alcada[1]), 'ATIVO')
+        parametros = (alcada[0], alcada[1], float(alcada[2]), 'ATIVO')
     
         cursor.execute(vsql, parametros)
         resultado = cursor.fetchall()
@@ -73,13 +73,19 @@ def salvaParametrosAlcadas(alcadas=[]):
 
     cursor.close()
 
-def carregarParametrosAlcadas():
+def carregarParametrosAlcadas(cooperativa=None):
     db     = conexao()
     cursor = db.cursor()
-        
-    vsql = 'SELECT alcada, valor from parametros_alcadas WHERE situacao="ATIVO"'
-    cursor.execute(vsql,)
-    resultado = cursor.fetchall()
+    
+    if cooperativa != None:
+        vsql = 'SELECT cooperativa, alcada, valor from parametros_alcadas WHERE situacao="ATIVO" AND cooperativa = "'+cooperativa+'"'
+        parametros = (str(cooperativa))
+        cursor.execute(vsql,)
+        resultado = cursor.fetchall()
+    else:
+        vsql = 'SELECT cooperativa, alcada, valor from parametros_alcadas WHERE situacao="ATIVO"'
+        cursor.execute(vsql,)
+        resultado = cursor.fetchall()
 
     cursor.close()
     

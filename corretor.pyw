@@ -70,7 +70,7 @@ def converterPDF(vCaminho_arquivo):
     
         return None    
     
-def telaAlcadas(parametrosGerais=False):       
+def telaAlcadas(parametrosGerais=False, cooperativa=None):       
     global fichas_alcadas 
 
     if (parametrosGerais): 
@@ -79,14 +79,19 @@ def telaAlcadas(parametrosGerais=False):
 
         for item in retorno:
             dados.append(item)          
+            
+        carregou_coop = True
     else:        
         dados = fichas_alcadas
+        carregou_coop = False
 
     sg.theme('Reddit')
     
     alcadas = [    
                 [sg.Text(text='Definição de Alçadas', text_color="Black", font=("Arial",12, "bold"), expand_x=True, justification='center')],  
-                [sg.Table(values=dados, headings=['Alçada', 'Perc. %'], auto_size_columns=True, display_row_numbers=False, justification='center', key='-TABLE_ALCADAS-', selected_row_colors='red on yellow', enable_events=True, expand_x=True, expand_y=True,enable_click_events=True)],
+                [sg.Table(values=dados, headings=['Cooperativa','Alçada', 'Perc. %'], auto_size_columns=True, display_row_numbers=False, justification='center', key='-TABLE_ALCADAS-', selected_row_colors='red on yellow', enable_events=True, expand_x=True, expand_y=True,enable_click_events=True)],
+                [sg.Text(text="Cooperativa:", font=("Arial",10, "bold"))],    
+                [sg.Combo(['Padrão','Sicredi Raízes', 'Sicredi Conexão', 'Sicredi Região da Produção', 'Cresol Raiz', 'Cresol Gerações'], key="ed_cooperativa", enable_events=True, expand_x=True)],
                 [sg.Text(text='Alçada %: '),sg.Input(key='ed_valor_alcada', size=(15,1), enable_events=True),sg.Button(' + Adicionar', key='btn_incluir_alcadas'), sg.Button(' - Remover', key='btn_remover_alcadas')],
                 [sg.Button('Salvar', key='btn_salvar_alcadas'), sg.Button('Cancelar', key='btn_cancelar_alcadas')]      
               ]
@@ -95,6 +100,9 @@ def telaAlcadas(parametrosGerais=False):
 
     while True:                
         eventos, valores = tela.read(timeout=0.1)
+        
+        if not(carregou_coop):
+            tela['ed_cooperativa'].update(cooperativa)
 
         if eventos == 'ed_valor_alcada': 
             if valores['ed_valor_alcada'] != '':                  
@@ -123,15 +131,16 @@ def telaAlcadas(parametrosGerais=False):
 
         if eventos == 'btn_incluir_alcadas':
             i = 1            
-            for alcadas in dados:            
-                i = i + 1
+            for alcadas in dados:
+                if valores['ed_cooperativa'] == alcadas[0]:
+                    i = i + 1
 
             if valores['ed_valor_alcada'] == '':
                 sg.popup('É necessário informar um percentual')
             else:
 
                 if float(valores['ed_valor_alcada'].replace(",",".")) > 0:                    
-                    dados.append([i,valores['ed_valor_alcada'].replace(",",".")])                    
+                    dados.append([valores['ed_cooperativa'],i,valores['ed_valor_alcada'].replace(",",".")])                    
                     tela['ed_valor_alcada'].update('')                    
                     tela['-TABLE_ALCADAS-'].update(values=dados)
 
@@ -168,7 +177,7 @@ def main():
     maquina            = f.pegarNomeMaquina() 
     ultima_versao      = f.BuscaUltimaVersao()
     
-    versao_exe         = '1.0.0' 
+    versao_exe         = '1.0.1' 
     
     versao_descricao   = 'Atualizado'
     if(versao_exe != ultima_versao):
@@ -194,12 +203,14 @@ def main():
     frame_arquivo = sg.Frame('Selecione a Ficha Gráfica', [lista_arquivo], expand_x=True)
     
     lista_indices = []
-    lista_indices.append(sg.Checkbox(text='IGPM', key='ed_igpm',disabled=True))
-    lista_indices.append(sg.Checkbox(text='IPCA', key='ed_ipca', disabled=True))
+    lista_indices.append(sg.Checkbox(text='IGPM', key='ed_igpm'))
+    lista_indices.append(sg.Checkbox(text='IPCA', key='ed_ipca'))
     lista_indices.append(sg.Checkbox(text='CDI', key='ed_cdi'))
-    lista_indices.append(sg.Checkbox(text='INPC', key='ed_inpc',disabled=True))
-    lista_indices.append(sg.Checkbox(text='TR', key='ed_tr', disabled=True))
+    lista_indices.append(sg.Checkbox(text='INPC', key='ed_inpc'))
+    lista_indices.append(sg.Checkbox(text='TR', key='ed_tr'))
     lista_indices.append(sg.Button("Alçadas", key='btn_alcadas'))
+    lista_indices.append(sg.Text("Alçada Carregada"))
+    lista_indices.append(sg.Combo(['Padrão','Sicredi Raízes', 'Sicredi Conexão', 'Sicredi Região da Produção', 'Cresol Raiz', 'Cresol Gerações'], key="ed_alcada_carregada", enable_events=True, expand_x=True))
     frame_indices = sg.Frame('Índices de Correção', [lista_indices], expand_x=True)
 
     lista_informacoes = []
@@ -351,11 +362,15 @@ def main():
 
             if f.identificaVersao(arquivo_tmp) == 'cresol':
                 ## Utiliza a mesma função de importar, porém, definido flag para True
-                dados = cresol.importar_cabecalho(arquivo_tmp, True)                
+                dados, cooperativa_selecionada = cresol.importar_cabecalho(arquivo_tmp, True)
+                tela['ed_alcada_carregada'].update(cooperativa_selecionada)
+                carregaAlcadasPadrao(cooperativa_selecionada)
             else:
                 ## Utiliza a mesma função de importar, porém, definido flag para True
-                dados = sicredi.importaFichaGrafica(arquivo_tmp, True)                
-
+                dados, cooperativa_selecionada = sicredi.importaFichaGrafica(arquivo_tmp, True)
+                tela['ed_alcada_carregada'].update(cooperativa_selecionada)
+                carregaAlcadasPadrao(cooperativa_selecionada)
+            
             for l in dados:
                 informacoes = informacoes + ' ' + str(l) + '\n'
 
@@ -373,8 +388,11 @@ def main():
         if versaoExe != versaoBanco:
             f.atualizacaoDisponivel()
             #atualizador.telaAtualizador()
+            
+        tela['ed_alcada_carregada'].update('Padrão')
 
         parametros = f.carregaParametrosGerais()
+        f.carregarParametrosAlcadas(valores['ed_alcada_carregada'])
 
         if parametros != None:
             tela['ed_igpm'].update(parametros[0])
@@ -406,11 +424,11 @@ def main():
             print('Carregou os parâmetros padrão.')
         return True
         
-    def carregaAlcadasPadrao():
+    def carregaAlcadasPadrao(cooperativa=None):
         global fichas_alcadas
 
         fichas_alcadas = []
-        alcadas = f.carregarParametrosAlcadas()
+        alcadas = f.carregarParametrosAlcadas(cooperativa)
         for item in alcadas:
             fichas_alcadas.append(item)
 
@@ -449,7 +467,7 @@ def main():
     if (busca_licena == 'THMPV-77D6F-94376-8HGKG-VRDRQ'):                
         f.gravalog('Iniciado - Licença Ok')
         #Inicia o corretor
-        tela         = sg.Window('Corretor', tabgrp, size=(None,None))
+        tela         = sg.Window('Sistema de Cálculo - Fortes&Fortes', tabgrp, size=(None,None))
         progress_bar = tela['progressbar']
 
         carregou_parametros = False
@@ -471,8 +489,8 @@ def main():
             progress_bar.UpdateBar(0)                        
 
             ## Chamar tela das alçadas
-            if eventos == 'btn_alcadas':                               
-                telaAlcadas()
+            if eventos == 'btn_alcadas':                  
+                telaAlcadas(False, valores['ed_alcada_carregada'])
 
             ## Chamar tela alçadas padrão(parâmetros)
             if eventos == 'btn_alcadas_padrao':
@@ -601,7 +619,7 @@ def main():
                 if valores['ed_outros_valor_param'] != '':          
                     if valores['ed_outros_valor_param'][-1] not in ('0123456789,.'):                                                
                         tela['ed_outros_valor_param'].update(valores['ed_outros_valor_param'][:-1])
-
+            
             if eventos == 'btn_atualizar_importadas':                                                 
                 db     = f.conexao()
                 cursor = db.cursor()
@@ -620,7 +638,7 @@ def main():
                 
                 vfiltros = v_titulo_filtro + ' ' + v_associado_filtro
                 
-                sql_consulta = 'SELECT f.id,coalesce(DATE_FORMAT(f.data_importacao, "%d/%m/%Y"),"") as data_importacao,f.titulo,f.versao,f.associado,f.nro_parcelas,f.valor_financiado,f.tx_juro FROM ficha_grafica as f WHERE f.situacao="ATIVO" ' + vfiltros + ' order by id DESC'
+                sql_consulta = 'SELECT f.id,coalesce(DATE_FORMAT(f.data_importacao, "%d/%m/%Y"),"") as data_importacao,f.titulo,f.versao,f.associado,f.nro_parcelas,format(f.valor_financiado,2) as valor_financiado,format(f.tx_juro,2) as tx_juro FROM ficha_grafica as f WHERE f.situacao="ATIVO" ' + vfiltros + ' order by id DESC'
                 
                 cursor.execute(sql_consulta)
                 dados = cursor.fetchall()
@@ -805,10 +823,6 @@ def main():
                         cursor = db.cursor()
                         tipo = 'Correcao_Comum'
 
-                        totalJurosAcumulado     = 0
-                        totalMorasAcumulado     = 0
-                        totalParcelasAcumuladas = 0
-
                         adicionalMulta = float(parametros['multa_valor'])
                         adicionalHonorarios = float(parametros['honorarios_valor'])
                         adicionalOutrosValores = float(parametros['outros_valor'])
@@ -825,14 +839,27 @@ def main():
 
                         progress_bar.UpdateBar(75)
 
+                        indicesCorrecao = [{'nome':'S_C', 'ativo' :True}]
+
+                        if parametros['igpm']:
+                            indicesCorrecao.append({'nome': 'IGMP', 'ativo': True})
+                        if parametros['ipca']:
+                            indicesCorrecao.append({'nome': 'IPCA', 'ativo': True})
+                        if parametros['cdi']:
+                            indicesCorrecao.append({'nome': 'CDI', 'ativo': True})
+                        if parametros['inpc']:
+                            indicesCorrecao.append({'nome': 'INPC', 'ativo': True})
+                        if parametros['tr']:
+                            indicesCorrecao.append({'nome': 'TR', 'ativo': True})
+
                         # Caclula Juros Simples
                         f.geraPDFCalculo(cursor=cursor,
                                          parametros=parametros,
                                          parcelas=resultParcelas,
+                                         indicesCorrecao=indicesCorrecao,
                                          tx_juros=dados_cabecalho[7],
                                          multa=dados_cabecalho[8],
                                          nomeAssociado=dados_cabecalho[2],
-                                         tipoCorrecao=tipo,
                                          nroTitulo=dados_cabecalho[1],
                                          dataLiberacao=dados_cabecalho[9].strftime('%d/%m/%Y'),
                                          path_destino=path_destino,
@@ -841,27 +868,6 @@ def main():
                                          adicionalOutrosValores=adicionalOutrosValores,
                                          alcadas=fichas_alcadas,
                                          isCresol=versao == 'cresol')
-
-                        progress_bar.UpdateBar(80)
-                        if parametros['cdi']:
-                            progress_bar.UpdateBar(82)
-                            f.geraPDFCalculo(cursor=cursor,
-                                             parametros=parametros,
-                                             parcelas=resultParcelas,
-                                             tx_juros=dados_cabecalho[7],
-                                             multa=dados_cabecalho[8],
-                                             nomeAssociado=dados_cabecalho[2],
-                                             tipoCorrecao=tipo,
-                                             nroTitulo=dados_cabecalho[1],
-                                             dataLiberacao=dados_cabecalho[9].strftime('%d/%m/%Y'),
-                                             path_destino=path_destino,
-                                             adicionalMulta=adicionalMulta,
-                                             adicionalHonorarios=adicionalHonorarios,
-                                             adicionalOutrosValores=adicionalOutrosValores,
-                                             aplicaCDI=True,
-                                             alcadas=fichas_alcadas,
-                                             isCresol=versao == 'cresol')
-
                         progress_bar.UpdateBar(95)
 
                         path_final = os.path.realpath(path_destino)

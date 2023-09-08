@@ -34,10 +34,10 @@ def salvaFichaAlcadas(id_ficha, alcadas=[]):
     db.commit()    
     
     for alcada in alcadas:
-        vsql = 'INSERT INTO ficha_alcadas(id_ficha_grafica, alcada, valor, situacao)\
-                VALUES(%s,%s,%s,%s)'
+        vsql = 'INSERT INTO ficha_alcadas(id_ficha_grafica, cooperativa, alcada, valor, situacao)\
+                VALUES(%s,%s,%s,%s,%s)'
         
-        parametros = (id_ficha, alcada[0], float(str(alcada[1]).replace(",",".")), 'ATIVO')
+        parametros = (id_ficha, alcada[0], alcada[1], float(str(alcada[2]).replace(",",".")), 'ATIVO')
     
         try:
             cursor.execute(vsql, parametros)
@@ -98,7 +98,7 @@ def carregarFichaAlcadas(id_ficha):
     db     = conexao()
     cursor = db.cursor()
         
-    vsql = 'SELECT alcada, valor from ficha_alcadas WHERE situacao="ATIVO" and id_ficha_grafica=%s'
+    vsql = 'SELECT cooperativa, alcada, valor from ficha_alcadas WHERE situacao="ATIVO" and id_ficha_grafica=%s'
     parametro = (id_ficha,)
     cursor.execute(vsql,parametro)
     resultado = cursor.fetchall()

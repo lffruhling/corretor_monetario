@@ -177,7 +177,7 @@ def main():
     maquina            = f.pegarNomeMaquina() 
     ultima_versao      = f.BuscaUltimaVersao()
     
-    versao_exe         = '1.0.0' 
+    versao_exe         = '1.0.1' 
     
     versao_descricao   = 'Atualizado'
     if(versao_exe != ultima_versao):
@@ -203,11 +203,11 @@ def main():
     frame_arquivo = sg.Frame('Selecione a Ficha Gráfica', [lista_arquivo], expand_x=True)
     
     lista_indices = []
-    lista_indices.append(sg.Checkbox(text='IGPM', key='ed_igpm',disabled=True))
-    lista_indices.append(sg.Checkbox(text='IPCA', key='ed_ipca', disabled=True))
+    lista_indices.append(sg.Checkbox(text='IGPM', key='ed_igpm'))
+    lista_indices.append(sg.Checkbox(text='IPCA', key='ed_ipca'))
     lista_indices.append(sg.Checkbox(text='CDI', key='ed_cdi'))
-    lista_indices.append(sg.Checkbox(text='INPC', key='ed_inpc',disabled=True))
-    lista_indices.append(sg.Checkbox(text='TR', key='ed_tr', disabled=True))
+    lista_indices.append(sg.Checkbox(text='INPC', key='ed_inpc'))
+    lista_indices.append(sg.Checkbox(text='TR', key='ed_tr'))
     lista_indices.append(sg.Button("Alçadas", key='btn_alcadas'))
     lista_indices.append(sg.Text("Alçada Carregada"))
     lista_indices.append(sg.Combo(['Padrão','Sicredi Raízes', 'Sicredi Conexão', 'Sicredi Região da Produção', 'Cresol Raiz', 'Cresol Gerações'], key="ed_alcada_carregada", enable_events=True, expand_x=True))
@@ -392,6 +392,7 @@ def main():
         tela['ed_alcada_carregada'].update('Padrão')
 
         parametros = f.carregaParametrosGerais()
+        f.carregarParametrosAlcadas(valores['ed_alcada_carregada'])
 
         if parametros != None:
             tela['ed_igpm'].update(parametros[0])
@@ -488,7 +489,7 @@ def main():
             progress_bar.UpdateBar(0)                        
 
             ## Chamar tela das alçadas
-            if eventos == 'btn_alcadas':                               
+            if eventos == 'btn_alcadas':                  
                 telaAlcadas(False, valores['ed_alcada_carregada'])
 
             ## Chamar tela alçadas padrão(parâmetros)

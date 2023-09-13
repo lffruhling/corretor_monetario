@@ -717,6 +717,7 @@ def geraPDFCalculo(cursor, parametros, indicesCorrecao, parcelas, tx_juros, mult
 
             jCount = 0
             for alcada in alcadas:
+                print(f'Gerando alçada {alcada[2]}')
                 result = geraLancamento(cursor, parcelas, vNomeIndice, taxaDeJuros, totalPago, totalLiberado, isCresol, alcada)
 
                 jCount += 1
@@ -729,6 +730,6 @@ def geraPDFCalculo(cursor, parametros, indicesCorrecao, parcelas, tx_juros, mult
                 calculos = geraArquivoPdf(parametros, multa, totalLiberado, totalPago, result[1], adicionalMulta,
                                adicionalHonorarios, adicionalOutrosValores, nomeAssociado, vNomeIndiceArquivo, nroTitulo,
                                dataLiberacao,
-                               f"Multa de {percentualMulta} sobre o valor corrigido na Alçada {alcada[0]} com Juros de {alcada[1]:,.2f}%",
-                               result[0], result[2], path_destino, calculos, vGeraArquivo, f"Alçada {alcada[0]} com Juros de {alcada[1]:,.2f}%")
+                               f"Multa de {percentualMulta} sobre o valor corrigido na Alçada {alcada[1]} com Juros de {alcada[2]:,.2f}%",
+                               result[0], result[2], path_destino, calculos, vGeraArquivo, f"Alçada {alcada[1]} com Juros de {alcada[2]:,.2f}%")
 

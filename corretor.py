@@ -140,7 +140,7 @@ def telaAlcadas(parametrosGerais=False, cooperativa=None):
             else:
 
                 if float(valores['ed_valor_alcada'].replace(",",".")) > 0:                    
-                    dados.append([valores['ed_cooperativa'],i,valores['ed_valor_alcada'].replace(",",".")])                    
+                    dados.append([valores['ed_cooperativa'],i,float(valores['ed_valor_alcada'].replace(",","."))])                    
                     tela['ed_valor_alcada'].update('')                    
                     tela['-TABLE_ALCADAS-'].update(values=dados)
 
@@ -155,7 +155,7 @@ def telaAlcadas(parametrosGerais=False, cooperativa=None):
                 i = 1
                 x = 0                
                 for alcadas in dados:                    
-                    dados[x] = [i, alcadas[1]]
+                    dados[x] = [alcadas[0], i, alcadas[2]]
                     i = i + 1
                     x = x + 1
                 
@@ -209,8 +209,8 @@ def main():
     lista_indices.append(sg.Checkbox(text='INPC', key='ed_inpc'))
     lista_indices.append(sg.Checkbox(text='TR', key='ed_tr'))
     lista_indices.append(sg.Button("Alçadas", key='btn_alcadas'))
-    lista_indices.append(sg.Text("Alçada Carregada"))
-    lista_indices.append(sg.Combo(['Padrão','Sicredi Raízes', 'Sicredi Conexão', 'Sicredi Região da Produção', 'Cresol Raiz', 'Cresol Gerações'], key="ed_alcada_carregada", enable_events=True, expand_x=True))
+    lista_indices.append(sg.Text("Alçada"))
+    lista_indices.append(sg.Combo(['Sem Alçada','Padrão','Sicredi Raízes', 'Sicredi Conexão', 'Sicredi Região da Produção', 'Cresol Raiz', 'Cresol Gerações'], key="ed_alcada_carregada", enable_events=True, expand_x=True))
     frame_indices = sg.Frame('Índices de Correção', [lista_indices], expand_x=True)
 
     lista_informacoes = []
@@ -488,9 +488,20 @@ def main():
             progress_bar.update(visible=False)
             progress_bar.UpdateBar(0)                        
 
+            if eventos == 'ed_alcada_carregada':
+                if valores['-INPUT-'] != '':
+                    if valores['ed_alcada_carregada'] == 'Sem Alçada':
+                        fichas_alcadas = []
+                    else:
+                        atualizaInfo()
+            
             ## Chamar tela das alçadas
             if eventos == 'btn_alcadas':                  
-                telaAlcadas(False, valores['ed_alcada_carregada'])
+                if valores['ed_alcada_carregada'] != 'Sem Alçada':
+                    telaAlcadas(False, valores['ed_alcada_carregada'])
+                else:
+                    sg.popup('Não é possível configurar alçadas para o modo "Sem Alçada" que está selecionado no campo "Alçada". \
+                        Caso dejese configurar alçadas para calcular uma ficha gráfica é necessário alterar a alçada selecionada.')
 
             ## Chamar tela alçadas padrão(parâmetros)
             if eventos == 'btn_alcadas_padrao':
@@ -700,6 +711,9 @@ def main():
                     carregaParametros(tela)
             
             if eventos == 'Calcular':
+                
+                if valores['ed_alcada_carregada'] == 'Sem Alçada':
+                    fichas_alcadas = []
 
                 ## Se tentar calcular uma ficha já importada
                 if id_ficha_grafica > 0:

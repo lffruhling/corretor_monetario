@@ -577,7 +577,8 @@ def geraLancamento(cursor, parcelas, indice, taxaDeJuros, totalPago, totalLibera
         valorParcela = parcela[1]
         descricaoParcela = parcela[2]
         if alcada is not None:
-            txIndice = alcada[1]
+            txIndice = alcada[2]
+            print('\n\n>>> Alçada: ' + str(txIndice))
             # taxaDeJuros += txIndice
         else:
             txIndice = 0

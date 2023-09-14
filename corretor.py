@@ -493,7 +493,8 @@ def main():
                     if valores['ed_alcada_carregada'] == 'Sem Alçada':
                         fichas_alcadas = []
                     else:
-                        atualizaInfo()
+                        carregaAlcadasPadrao(valores['ed_alcada_carregada'])
+                    #    atualizaInfo()
             
             ## Chamar tela das alçadas
             if eventos == 'btn_alcadas':                  

@@ -578,7 +578,6 @@ def geraLancamento(cursor, parcelas, indice, taxaDeJuros, totalPago, totalLibera
         descricaoParcela = parcela[2]
         if alcada is not None:
             txIndice = alcada[2]
-            print('\n\n>>> Alçada: ' + str(txIndice))
             # taxaDeJuros += txIndice
         else:
             txIndice = 0
@@ -717,11 +716,12 @@ def geraPDFCalculo(cursor, parametros, indicesCorrecao, parcelas, tx_juros, mult
 
             jCount = 0
             for alcada in alcadas:
-                print(f'Gerando alçada {alcada[2]}')
+                print(f'Gerando alçada N° {alcada[1]} - {alcada[2]} de um total de {str(len(alcadas))} do Indice: {vNomeIndiceArquivo}')
                 result = geraLancamento(cursor, parcelas, vNomeIndice, taxaDeJuros, totalPago, totalLiberado, isCresol, alcada)
-
+                
                 jCount += 1
                 vGeraArquivo = (jCount == len(alcadas) and iCount == len(indicesCorrecao))
+                print(str(vGeraArquivo))
 
                 vNomeIndiceArquivo = vNomeIndice
                 if vNomeIndiceArquivo == 'S_C':

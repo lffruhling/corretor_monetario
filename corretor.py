@@ -140,7 +140,7 @@ def telaAlcadas(parametrosGerais=False, cooperativa=None):
             else:
 
                 if float(valores['ed_valor_alcada'].replace(",",".")) > 0:                    
-                    dados.append([valores['ed_cooperativa'],i,float(valores['ed_valor_alcada'].replace(",","."))])                    
+                    dados.append((valores['ed_cooperativa'], i, float(valores['ed_valor_alcada'].replace(",","."))))                    
                     tela['ed_valor_alcada'].update('')                    
                     tela['-TABLE_ALCADAS-'].update(values=dados)
 

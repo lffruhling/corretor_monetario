@@ -628,7 +628,7 @@ def geraLancamento(cursor, parcelas, indice, taxaDeJuros, totalPago, totalLibera
         totalParcelaCorrigida
     ]
 
-def geraArquivoPdf(parametros, multa, totalLiberado, totalPago, totalJurosAcumulado, adicionalMulta, adicionalHonorarios,
+def geraArquivoPdf(parametros, jurosMoratorios, dataInadimplencia, multa, totalLiberado, totalPago, totalJurosAcumulado, adicionalMulta, adicionalHonorarios,
                    adicionalOutrosValores, nomeAssociado, tipoCorrecao, nroTitulo, dataLiberacao, formaJuros, lancamentos,
                    totalParcelaCorrigida, path_destino, calculos, gerarArquivo=False, nroAlcada=""):
     vMulta = 0
@@ -656,6 +656,9 @@ def geraArquivoPdf(parametros, multa, totalLiberado, totalPago, totalJurosAcumul
         "total_corrigido": moeda(totalCorrigido),
         "total_juros": moeda(totalJurosAcumulado),
         "total_mora": moeda(totalMulta),
+        "multa": vMulta,
+        "juros_moratorios": jurosMoratorios,
+        "data_inadimplencia": dataInadimplencia,
         "total_divida": moeda(totalMulta + totalBC),
         "total_bc": moeda(totalBC),
         "total_atualizado": moeda(totalAutalizado),
@@ -667,7 +670,7 @@ def geraArquivoPdf(parametros, multa, totalLiberado, totalPago, totalJurosAcumul
 
     if gerarArquivo:
         ## Gera o relatório e transforma em .pdf
-        template = DocxTemplate('relatorio/Template3.docx')
+        template = DocxTemplate('relatorio/Template4.docx')
         template.render({
             "calculos": calculos,
             "nome_associado": nomeAssociado,

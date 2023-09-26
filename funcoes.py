@@ -643,7 +643,7 @@ def geraArquivoPdf(parametros, multa, totalLiberado, totalPago, totalJurosAcumul
     totalMulta = (totalBC * 2) / 100
     totalAutalizado = totalCorrigido + totalJurosAcumulado + totalMulta + adicionalMulta + adicionalHonorarios + adicionalOutrosValores
 
-    calculo = {
+    calculos.append({
         "nome_associado": nomeAssociado,
         "tipo_correcao": tipoCorrecao,
         "numero_titulo": nroTitulo,
@@ -662,8 +662,8 @@ def geraArquivoPdf(parametros, multa, totalLiberado, totalPago, totalJurosAcumul
         "adicional_multa": moeda(adicionalMulta),
         "adicional_honorarios": moeda(adicionalHonorarios),
         "adicional_outros": moeda(adicionalOutrosValores),
-        "alcada":nroAlcada,
-    }
+        "alcada": nroAlcada,
+    })
 
     if gerarArquivo:
         ## Gera o relatório e transforma em .pdf
@@ -679,7 +679,6 @@ def geraArquivoPdf(parametros, multa, totalLiberado, totalPago, totalJurosAcumul
         convert(f'{vNomeArquivo}.docx', f'{vNomeArquivo}.pdf')
         os.remove(f'{vNomeArquivo}.docx')
     else:
-        calculos.append(calculo)
         return calculos
 
 def geraPDFCalculo(cursor, parametros, indicesCorrecao, parcelas, tx_juros, multa, nomeAssociado, nroTitulo, dataLiberacao, path_destino, adicionalMulta, adicionalHonorarios, adicionalOutrosValores, alcadas,isCresol=False):
@@ -705,14 +704,19 @@ def geraPDFCalculo(cursor, parametros, indicesCorrecao, parcelas, tx_juros, mult
             result = geraLancamento(cursor, parcelas, vNomeIndice, taxaDeJuros, totalPago, totalLiberado, isCresol)
 
             vNomeIndiceArquivo = vNomeIndice
-            if vNomeIndiceArquivo == 'S_C':
+            if vNomeIndice == 'S_C':
                 vNomeIndiceArquivo = 'Sem Correção'
+
+            vGeraArquivo = len(alcadas) == 0 and len(indicesCorrecao) == 1 and vNomeIndice == 'S_C'
+
+            if not vGeraArquivo:
+                vGeraArquivo =  len(alcadas) == 0 and iCount == len(indicesCorrecao)
 
             calculos = geraArquivoPdf(parametros, multa, totalLiberado, totalPago, result[1], adicionalMulta,
                            adicionalHonorarios, adicionalOutrosValores, nomeAssociado, vNomeIndiceArquivo, nroTitulo,
                            dataLiberacao,
                            f"Multa de {percentualMulta} sobre o valor corrigido + juros principais + juros moratórios",
-                           result[0], result[2], path_destino, calculos)
+                           result[0], result[2], path_destino, calculos, vGeraArquivo)
 
             jCount = 0
             for alcada in alcadas:
@@ -721,7 +725,6 @@ def geraPDFCalculo(cursor, parametros, indicesCorrecao, parcelas, tx_juros, mult
                 
                 jCount += 1
                 vGeraArquivo = (jCount == len(alcadas) and iCount == len(indicesCorrecao))
-                print(str(vGeraArquivo))
 
                 vNomeIndiceArquivo = vNomeIndice
                 if vNomeIndiceArquivo == 'S_C':

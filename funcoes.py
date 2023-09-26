@@ -110,14 +110,14 @@ def carregarFichaAlcadas(id_ficha):
     else:
         return []
 
-def salvaParametrosImportacao(id_ficha, igpm, ipca, cdi, inpc, tr, multa_perc, multa_valor_fixo, multa_incidencia, honorarios_perc, honorarios_valor_fixo, outros_valor):
+def salvaParametrosImportacao(id_ficha, igpm, ipca, cdi, inpc, tr, multa_perc, multa_valor_fixo, multa_incidencia, honorarios_perc, honorarios_valor_fixo, outros_valor, selic):
     db     = conexao()
     cursor = db.cursor()
     
-    vsql = 'INSERT INTO ficha_parametros(id_ficha_grafica, igpm, ipca, cdi, inpc, tr, multa_perc, multa_valor_fixo, multa_incidencia, honorarios_perc, honorarios_valor_fixo, outros_valor)\
-            VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+    vsql = 'INSERT INTO ficha_parametros(id_ficha_grafica, igpm, ipca, cdi, inpc, tr, multa_perc, multa_valor_fixo, multa_incidencia, honorarios_perc, honorarios_valor_fixo, outros_valor, selic)\
+            VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
         
-    parametros = (id_ficha, igpm, ipca, cdi, inpc, tr, multa_perc, multa_valor_fixo, multa_incidencia, honorarios_perc, honorarios_valor_fixo, outros_valor)
+    parametros = (id_ficha, igpm, ipca, cdi, inpc, tr, multa_perc, multa_valor_fixo, multa_incidencia, honorarios_perc, honorarios_valor_fixo, outros_valor, selic)
     
     cursor.execute(vsql, parametros)
     resultado = cursor.fetchall()
@@ -128,7 +128,7 @@ def salvaParametrosImportacao(id_ficha, igpm, ipca, cdi, inpc, tr, multa_perc, m
 
     cursor.close()
 
-def salvarParametrosGerais(igpm, ipca, cdi, inpc, tr, multa_perc, multa_valor_fixo, multa_incidencia, honorarios_perc, honorarios_valor_fixo, outros_valor):
+def salvarParametrosGerais(igpm, ipca, cdi, inpc, tr, multa_perc, multa_valor_fixo, multa_incidencia, honorarios_perc, honorarios_valor_fixo, outros_valor, selic):
     db     = conexao()
     cursor = db.cursor()
 
@@ -136,10 +136,10 @@ def salvarParametrosGerais(igpm, ipca, cdi, inpc, tr, multa_perc, multa_valor_fi
     cursor.execute(vsql_update,)
     db.commit()
 
-    vsql = 'INSERT INTO parametros_gerais(igpm, ipca, cdi, inpc, tr, multa_perc, multa_valor_fixo, multa_incidencia, honorarios_perc, honorarios_valor_fixo, outros_valor, situacao, data_inclusao)\
-            VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+    vsql = 'INSERT INTO parametros_gerais(igpm, ipca, cdi, inpc, tr, multa_perc, multa_valor_fixo, multa_incidencia, honorarios_perc, honorarios_valor_fixo, outros_valor, selic, situacao, data_inclusao)\
+            VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
 
-    parametros = (igpm, ipca, cdi, inpc, tr, multa_perc, multa_valor_fixo, multa_incidencia, honorarios_perc, honorarios_valor_fixo, outros_valor,'ATIVO',datetime.now())
+    parametros = (igpm, ipca, cdi, inpc, tr, multa_perc, multa_valor_fixo, multa_incidencia, honorarios_perc, honorarios_valor_fixo, outros_valor, selic, 'ATIVO',datetime.now())
 
     cursor.execute(vsql, parametros)
     resultado = cursor.fetchall()
@@ -158,7 +158,7 @@ def carregaParametrosGerais():
     db     = conexao()
     cursor = db.cursor()
 
-    vsql = 'SELECT igpm, ipca, cdi, inpc, tr, multa_perc, multa_valor_fixo, multa_incidencia, honorarios_perc, honorarios_valor_fixo, outros_valor FROM parametros_gerais WHERE situacao="ATIVO"'
+    vsql = 'SELECT igpm, ipca, cdi, inpc, tr, multa_perc, multa_valor_fixo, multa_incidencia, honorarios_perc, honorarios_valor_fixo, outros_valor, selic FROM parametros_gerais WHERE situacao="ATIVO"'
     cursor.execute(vsql,)
     resultado = cursor.fetchall()
 
@@ -171,7 +171,7 @@ def carregaParametrosFichaGrafica(ficha_id):
     db     = conexao()
     cursor = db.cursor()
 
-    vsql = 'SELECT igpm, ipca, cdi, inpc, tr, multa_perc, multa_valor_fixo, multa_incidencia, honorarios_perc, honorarios_valor_fixo, outros_valor FROM ficha_parametros WHERE id_ficha_grafica=' + str(ficha_id)
+    vsql = 'SELECT igpm, ipca, cdi, inpc, tr, multa_perc, multa_valor_fixo, multa_incidencia, honorarios_perc, honorarios_valor_fixo, outros_valor, selic FROM ficha_parametros WHERE id_ficha_grafica=' + str(ficha_id)
     cursor.execute(vsql,)
     resultado = cursor.fetchall()
 
@@ -548,7 +548,7 @@ def retornaIPCA(cursor, ano, mes):
         return float(result[int(mes) - 1])
     return 0
 
-def retornaSEIC(cursor, ano, mes):
+def retornaSELIC(cursor, ano, mes):
     cursor.execute('SELECT jan, fev, mar, abr, mai, jun, jul, ago, `set`, `out`, nov, dez FROM selic where ano = %s;',
                    [ano])
     result = cursor.fetchone()
@@ -594,7 +594,7 @@ def geraLancamento(cursor, parcelas, indice, taxaDeJuros, totalPago, totalLibera
             elif indice == 'TR':
                 txIndice += retornaTR(cursor, parcela[0].year, parcela[0].month)
             elif indice == 'SELIC':
-                txIndice += retornaSEIC(cursor, parcela[0].year, parcela[0].month)
+                txIndice += retornaSELIC(cursor, parcela[0].year, parcela[0].month)
 
             parcelaCorrgida = valorParcela + ((valorParcela * txIndice) / 100)
             resultParcela = calculaParcela(parcelaCorrgida, taxaDeJuros, totalMeses)

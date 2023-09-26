@@ -295,7 +295,7 @@ def importarCresol(vArquivoTxt, parametros, tela=None):
     ficha_grafica = importar_cabecalho(vArquivoTxt)
     if ficha_grafica > 0:
         f.salvaParametrosImportacao(ficha_grafica, parametros['igpm'], parametros['ipca'], parametros['cdi'], parametros['inpc'], parametros['tr'], parametros['multa_perc'],\
-                                    parametros['multa_valor'], parametros['multa_incidencia'], parametros['honorarios_perc'], parametros['honorarios_valor'], parametros['outros_valor'])
+                                    parametros['multa_valor'], parametros['multa_incidencia'], parametros['honorarios_perc'], parametros['honorarios_valor'], parametros['outros_valor'], parametros['selic'])
         importar_detalhes(vArquivoTxt, titulo, ficha_grafica, tela)
 
     return titulo, ficha_grafica

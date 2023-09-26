@@ -470,7 +470,7 @@ def importarSicredi(vCaminhoTxt, parametros, pdf=False, tela=None):
     ficha_grafica = importaFichaGrafica(vCaminhoTxt)
     if ficha_grafica > 0:
         f.salvaParametrosImportacao(ficha_grafica, parametros['igpm'], parametros['ipca'], parametros['cdi'], parametros['inpc'], parametros['tr'], parametros['multa_perc'],\
-                                    parametros['multa_valor'], parametros['multa_incidencia'], parametros['honorarios_perc'], parametros['honorarios_valor'], parametros['outros_valor'])
+                                    parametros['multa_valor'], parametros['multa_incidencia'], parametros['honorarios_perc'], parametros['honorarios_valor'], parametros['outros_valor'], parametros['selic'])
         ficha_titulo = importaFichaGraficaDetalhe(vCaminhoTxt, ficha_grafica, pdf, tela)  
 
     return ficha_titulo, ficha_grafica

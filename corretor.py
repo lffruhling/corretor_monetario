@@ -208,6 +208,7 @@ def main():
     lista_indices.append(sg.Checkbox(text='CDI', key='ed_cdi'))
     lista_indices.append(sg.Checkbox(text='INPC', key='ed_inpc'))
     lista_indices.append(sg.Checkbox(text='TR', key='ed_tr'))
+    lista_indices.append(sg.Checkbox(text='SELIC', key='ed_selic'))
     lista_indices.append(sg.Button("Alçadas", key='btn_alcadas'))
     lista_indices.append(sg.Text("Alçada"))
     lista_indices.append(sg.Combo(['Sem Alçada','Padrão','Sicredi Raízes', 'Sicredi Conexão', 'Sicredi Região da Produção', 'Cresol Raiz', 'Cresol Gerações'], key="ed_alcada_carregada", enable_events=True, expand_x=True))
@@ -245,6 +246,7 @@ def main():
     lista_indices_parametros.append(sg.Checkbox(text='CDI', key='ed_cdi_param'))
     lista_indices_parametros.append(sg.Checkbox(text='INPC', key='ed_inpc_param'))
     lista_indices_parametros.append(sg.Checkbox(text='TR', key='ed_tr_param'))
+    lista_indices_parametros.append(sg.Checkbox(text='SELIC', key='ed_selic_param'))
     frame_indices_parametros = sg.Frame('Índices de Correção', [lista_indices_parametros], expand_x=True)
     
     lista_multa_parametros = []
@@ -405,6 +407,8 @@ def main():
             tela['ed_inpc_param'].update(parametros[3])
             tela['ed_tr'].update(parametros[4])
             tela['ed_tr_param'].update(parametros[4])
+            tela['ed_selic'].update(parametros[11])
+            tela['ed_selic_param'].update(parametros[11])
 
             tela['ed_multa_perc'].update(parametros[5])
             tela['ed_multa_perc_param'].update(parametros[5])
@@ -551,6 +555,7 @@ def main():
                             tela['ed_cdi'].update(parametros_ficha[2])
                             tela['ed_inpc'].update(parametros_ficha[3])
                             tela['ed_tr'].update(parametros_ficha[4])
+                            tela['ed_selic'].update(parametros_ficha[11])
 
                             tela['ed_multa_perc'].update(parametros_ficha[5])
                             tela['ed_multa_valor'].update(parametros_ficha[6])
@@ -701,7 +706,7 @@ def main():
                         voutros_valor_param = float(voutros_valor_param)
 
                     try:
-                        if f.salvarParametrosGerais(valores['ed_igpm_param'], valores['ed_ipca_param'], valores['ed_cdi_param'], valores['ed_inpc_param'], valores['ed_tr_param'], vmulta_perc_param, vmulta_valor_param, vincidencia_param, vhonorarios_perc_param, vhonorarios_valor_param, voutros_valor_param):
+                        if f.salvarParametrosGerais(valores['ed_igpm_param'], valores['ed_ipca_param'], valores['ed_cdi_param'], valores['ed_inpc_param'], valores['ed_tr_param'], vmulta_perc_param, vmulta_valor_param, vincidencia_param, vhonorarios_perc_param, vhonorarios_valor_param, voutros_valor_param, valores['ed_selic_param']):
                             carregaParametros(tela)
                             sg.popup('Parâmetros definidos com sucesso!')
                     except Exception as erro:
@@ -771,6 +776,7 @@ def main():
                                 'cdi'              : valores['ed_cdi'],
                                 'inpc'             : valores['ed_inpc'],
                                 'tr'               : valores['ed_tr'],
+                                'selic'            : valores['ed_selic'],
                                 'multa_perc'       : vmulta_perc,
                                 'multa_valor'      : vmulta_valor,
                                 'multa_incidencia' : vincidencia,
@@ -866,6 +872,8 @@ def main():
                             indicesCorrecao.append({'nome': 'INPC', 'ativo': True})
                         if parametros['tr']:
                             indicesCorrecao.append({'nome': 'TR', 'ativo': True})
+                        if parametros['selic']:
+                            indicesCorrecao.append({'nome': 'SELIC', 'ativo': True})    
 
                         # Caclula Juros Simples
                         f.geraPDFCalculo(cursor=cursor,

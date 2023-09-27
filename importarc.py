@@ -20,6 +20,7 @@ multa            = 0
 vCET             = 0
 data_liberacao   = datetime.now()
 modalidade_amortizacao = ''
+dataEntradaPrejuizo = None
 
 ## Variaveis Detalhe
 parcela          = 0
@@ -82,7 +83,7 @@ def importar_cabecalho(vArquivoTxt, informacoes=False):
                     vjuros  = vjuros.replace(",",".")
                     tx_juro = float(vjuros)                
                     
-                if("Multa:" in linha):   
+                if("Multa:" in linha) and (vlinha <=30):   
                     vmulta  = linha.split(":")
                     vmulta  = vmulta[1].replace(" ","")
                     vmulta  = vmulta.replace("%","")
@@ -117,6 +118,12 @@ def importar_cabecalho(vArquivoTxt, informacoes=False):
                     vcontrato  = linha.split(":")
                     vcontrato  = vcontrato[1].replace(" ", "")
                     titulo     = vcontrato.rstrip('\n')
+                    
+                #if dataEntradaPrejuizo is None:
+                #    vparcela = parcela                
+                #    if (parcela == parcelas):
+                #        vparcela = parcela -1
+                #    dataEntradaPrejuizo = pegaDataVencimentoParcela(linha, vparcela)
                 
                 ## Parcela Atual
                 #if("Nome:" in linha):   

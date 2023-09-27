@@ -696,6 +696,11 @@ def geraPDFCalculo(cursor, parametros, indicesCorrecao, parcelas, tx_juros, mult
     totalLiberado           = 0
     totalPago               = 0
     calculos = []
+    
+    if isCresol:
+        percentualMulta = multa
+    else:
+        percentualMulta = tx_juros
 
     iCount = 0
     for indice in indicesCorrecao:
@@ -736,6 +741,6 @@ def geraPDFCalculo(cursor, parametros, indicesCorrecao, parcelas, tx_juros, mult
                 calculos = geraArquivoPdf(parametros, multa, totalLiberado, totalPago, result[1], adicionalMulta,
                                adicionalHonorarios, adicionalOutrosValores, nomeAssociado, vNomeIndiceArquivo, nroTitulo,
                                dataLiberacao,
-                               f"Multa de {percentualMulta} sobre o valor corrigido na Alçada {alcada[1]} com Juros de {alcada[2]:,.2f}%",
+                               f"Multa de {percentualMulta} sobre o valor corrigido na Alçada {alcada[1]} com Juros de {alcada[2]:,.2f}%, capitalizados mês a mês",
                                result[0], result[2], path_destino, calculos, vGeraArquivo, f"Alçada {alcada[1]} com Juros de {alcada[2]:,.2f}%")
 

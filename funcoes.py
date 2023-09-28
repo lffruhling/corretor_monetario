@@ -630,7 +630,7 @@ def geraLancamento(cursor, parcelas, indice, taxaDeJuros, totalPago, totalLibera
 
 def geraArquivoPdf(parametros, jurosMoratorios, dataInadimplencia, multa, totalLiberado, totalPago, totalJurosAcumulado, adicionalMulta, adicionalHonorarios,
                    adicionalOutrosValores, nomeAssociado, tipoCorrecao, nroTitulo, dataLiberacao, formaJuros, lancamentos,
-                   totalParcelaCorrigida, path_destino, calculos, gerarArquivo=False, nroAlcada=""):
+                   totalParcelaCorrigida, path_destino, calculos, tx_juros, gerarArquivo=False, nroAlcada=""):
     vMulta = 0
     if (multa is not None):
         vMulta = float(multa)
@@ -647,8 +647,8 @@ def geraArquivoPdf(parametros, jurosMoratorios, dataInadimplencia, multa, totalL
         "nome_associado": nomeAssociado,
         "tipo_correcao": tipoCorrecao,
         "numero_titulo": nroTitulo,
-        "forma_calculo": f"Parcelas Atualizadas Individualmente De {dataLiberacao} a {datetime.today().strftime('%d/%m/%Y')}` sem correção.",
-        "forma_juros": formaJuros, #,
+        "forma_calculo": f"Parcelas Atualizadas Individualmente De {dataLiberacao} a {datetime.today().strftime('%d/%m/%Y')} {formaJuros}.",
+        "forma_juros": f"De {dataLiberacao} a {datetime.today().strftime('%d/%m/%Y')} juros Remuneratórios de {tx_juros:,.2f}% ao mês, sobre o valor corrigido, capitalizados mês a mês.",
         "lancamentos": lancamentos,
         "total_liberado": moeda(totalLiberado),
         "total_pago": moeda(totalPago),
@@ -656,8 +656,8 @@ def geraArquivoPdf(parametros, jurosMoratorios, dataInadimplencia, multa, totalL
         "total_corrigido": moeda(totalCorrigido),
         "total_juros": moeda(totalJurosAcumulado),
         "total_mora": moeda(totalMulta),
-        "multa": vMulta,
-        "juros_moratorios": jurosMoratorios,
+        "multa": f"{vMulta:,.2f}%",
+        "juros_moratorios": f"{jurosMoratorios:,.2f}%",
         "data_inadimplencia": dataInadimplencia,
         "total_divida": moeda(totalMulta + totalBC),
         "total_bc": moeda(totalBC),
@@ -684,7 +684,7 @@ def geraArquivoPdf(parametros, jurosMoratorios, dataInadimplencia, multa, totalL
     else:
         return calculos
 
-def geraPDFCalculo(cursor, parametros, indicesCorrecao, parcelas, tx_juros, multa, nomeAssociado, nroTitulo, dataLiberacao, path_destino, adicionalMulta, adicionalHonorarios, adicionalOutrosValores, alcadas,isCresol=False):
+def geraPDFCalculo(cursor, parametros, indicesCorrecao, parcelas, tx_juros, multa, nomeAssociado, nroTitulo, dataLiberacao, path_destino, adicionalMulta, adicionalHonorarios, adicionalOutrosValores, alcadas, dataPrejuizo, juros_moratorios, isCresol=False):
     taxaDeJuros             = float(tx_juros)
     totalParcelaCorrigida   = 0
     parcelaCorrgida         = 0
@@ -720,11 +720,11 @@ def geraPDFCalculo(cursor, parametros, indicesCorrecao, parcelas, tx_juros, mult
             if not vGeraArquivo:
                 vGeraArquivo =  len(alcadas) == 0 and iCount == len(indicesCorrecao)
 
-            calculos = geraArquivoPdf(parametros, multa, totalLiberado, totalPago, result[1], adicionalMulta,
+            calculos = geraArquivoPdf(parametros, juros_moratorios, dataPrejuizo, multa, totalLiberado, totalPago, result[1], adicionalMulta,
                            adicionalHonorarios, adicionalOutrosValores, nomeAssociado, vNomeIndiceArquivo, nroTitulo,
                            dataLiberacao,
-                           f"Multa de {percentualMulta} sobre o valor corrigido + juros principais + juros moratórios",
-                           result[0], result[2], path_destino, calculos, vGeraArquivo)
+                           vNomeIndiceArquivo,
+                           result[0], result[2], path_destino, calculos, taxaDeJuros, vGeraArquivo)
 
             jCount = 0
             for alcada in alcadas:
@@ -738,9 +738,9 @@ def geraPDFCalculo(cursor, parametros, indicesCorrecao, parcelas, tx_juros, mult
                 if vNomeIndiceArquivo == 'S_C':
                     vNomeIndiceArquivo = 'Sem Correção'
 
-                calculos = geraArquivoPdf(parametros, multa, totalLiberado, totalPago, result[1], adicionalMulta,
+                calculos = geraArquivoPdf(parametros, juros_moratorios, dataPrejuizo, multa, totalLiberado, totalPago, result[1], adicionalMulta,
                                adicionalHonorarios, adicionalOutrosValores, nomeAssociado, vNomeIndiceArquivo, nroTitulo,
                                dataLiberacao,
-                               f"Multa de {percentualMulta} sobre o valor corrigido na Alçada {alcada[1]} com Juros de {alcada[2]:,.2f}%, capitalizados mês a mês",
-                               result[0], result[2], path_destino, calculos, vGeraArquivo, f"Alçada {alcada[1]} com Juros de {alcada[2]:,.2f}%")
+                               f"{vNomeIndiceArquivo} na Alçada {alcada[1]} com Juros de {alcada[2]:,.2f}%, capitalizados mês a mês",
+                               result[0], result[2], path_destino, calculos, taxaDeJuros, vGeraArquivo, f"Alçada {alcada[1]} com Juros de {alcada[2]:,.2f}%")
 

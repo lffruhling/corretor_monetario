@@ -820,6 +820,15 @@ def main():
                     else:
                         arquivo_importar = caminho
 
+                    if f.identificaVersao(arquivo_importar) == 'cresol':
+                        ## Utiliza a mesma função de importar, porém, definido flag para True
+                        dados, cooperativa_selecionada = cresol.importar_cabecalho(arquivo_importar, True)
+                    else:
+                        ## Utiliza a mesma função de importar, porém, definido flag para True
+                        dados, cooperativa_selecionada = sicredi.importaFichaGrafica(arquivo_importar, True)
+
+                    # print(dados)
+
                     progress_bar.UpdateBar(34)
 
                     if arquivo_importar != None:
@@ -890,6 +899,8 @@ def main():
                                          adicionalHonorarios=adicionalHonorarios,
                                          adicionalOutrosValores=adicionalOutrosValores,
                                          alcadas=fichas_alcadas,
+                                         dataPrejuizo=dados[10],
+                                         juros_moratorios=dados[11],
                                          isCresol=versao == 'cresol')
                         progress_bar.UpdateBar(95)
 

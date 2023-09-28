@@ -280,7 +280,8 @@ def importaFichaGrafica(vCaminhoTxt, informacoes=False):
     nro_parcelas     = 0
     parcela          = 0
     valor_financiado = 0
-    liberacao        = datetime.now()    
+    juros_moratorios = 0
+    liberacao        = datetime.now()
     titulo           = ''
     modalidade_amortizacao = ''
     dataEntradaPrejuizo = None
@@ -340,6 +341,12 @@ def importaFichaGrafica(vCaminhoTxt, informacoes=False):
             if("VALOR FINANCIADO .....:" in linha):
                 liberacao = pegaDataLiberacaoLinha(linha)
 
+            if("INADIMPLENCIA :" in linha):
+                vPosicao = str(linha).find(",")
+                fJuros_inadimplencia = float(str(linha[vPosicao-3:vPosicao+4]).strip().replace(",", "."))
+                fTaxa_juro = float(str(taxa_juro).replace(",", "."))
+                juros_moratorios = fJuros_inadimplencia - fTaxa_juro
+
             if dataEntradaPrejuizo is None:
                 vparcela = parcela                
                 if (parcela == nro_parcelas):
@@ -351,7 +358,7 @@ def importaFichaGrafica(vCaminhoTxt, informacoes=False):
         print('Data Entrada Prejuizo: ' + str(dataEntradaPrejuizo)) #Salvar a data de entrada no prejuizo na base
 
     if informacoes:
-        infos = 'Coop: Sicredi   Modalidade: ' + str(modalidade_amortizacao), 'Associado: ' + str(associado), 'Data de Liberação: ' + str(liberacao.strftime('%d/%m/%Y')), 'Número de Parcelas: ' + str(nro_parcelas), 'Parcela atual: ' + str(parcela), 'Título: ' + str(titulo), 'Taxa de Juros: ' + str(taxa_juro), 'Valor Financiado: ' + str(valor_financiado), 'Data da Inadimplência: ' + dataEntradaPrejuizo.strftime("%d/%m/%Y")
+        infos = 'Coop: Sicredi   Modalidade: ' + str(modalidade_amortizacao), 'Associado: ' + str(associado), 'Data de Liberação: ' + str(liberacao.strftime('%d/%m/%Y')), 'Número de Parcelas: ' + str(nro_parcelas), 'Parcela atual: ' + str(parcela), 'Título: ' + str(titulo), 'Taxa de Juros: ' + str(taxa_juro), 'Valor Financiado: ' + str(valor_financiado), 'Data da Inadimplência: ' + dataEntradaPrejuizo.strftime("%d/%m/%Y"), "Juros Moratórios: " + str(juros_moratorios),  dataEntradaPrejuizo.strftime("%d/%m/%Y"), juros_moratorios
         return infos, cooperativa_carregada
     else:            
         db     = f.conexao()

@@ -17,7 +17,7 @@ from docx2pdf import convert
 #Interface
 import PySimpleGUI as sg
 
-versaoExe = '1.0.1'
+versaoExe = '1.0.3'
 
 vPath    = 'C:/Temp/Fichas_Graficas'
 versao   = ''
@@ -140,7 +140,7 @@ def telaAlcadas(parametrosGerais=False, cooperativa=None):
             else:
 
                 if float(valores['ed_valor_alcada'].replace(",",".")) > 0:                    
-                    dados.append([valores['ed_cooperativa'],i,valores['ed_valor_alcada'].replace(",",".")])                    
+                    dados.append((valores['ed_cooperativa'], i, float(valores['ed_valor_alcada'].replace(",","."))))                    
                     tela['ed_valor_alcada'].update('')                    
                     tela['-TABLE_ALCADAS-'].update(values=dados)
 
@@ -155,7 +155,7 @@ def telaAlcadas(parametrosGerais=False, cooperativa=None):
                 i = 1
                 x = 0                
                 for alcadas in dados:                    
-                    dados[x] = [i, alcadas[1]]
+                    dados[x] = [alcadas[0], i, alcadas[2]]
                     i = i + 1
                     x = x + 1
                 
@@ -177,7 +177,7 @@ def main():
     maquina            = f.pegarNomeMaquina() 
     ultima_versao      = f.BuscaUltimaVersao()
     
-    versao_exe         = '1.0.1' 
+    versao_exe         = '1.0.3' 
     
     versao_descricao   = 'Atualizado'
     if(versao_exe != ultima_versao):
@@ -208,9 +208,10 @@ def main():
     lista_indices.append(sg.Checkbox(text='CDI', key='ed_cdi'))
     lista_indices.append(sg.Checkbox(text='INPC', key='ed_inpc'))
     lista_indices.append(sg.Checkbox(text='TR', key='ed_tr'))
+    lista_indices.append(sg.Checkbox(text='SELIC', key='ed_selic'))
     lista_indices.append(sg.Button("Alçadas", key='btn_alcadas'))
-    lista_indices.append(sg.Text("Alçada Carregada"))
-    lista_indices.append(sg.Combo(['Padrão','Sicredi Raízes', 'Sicredi Conexão', 'Sicredi Região da Produção', 'Cresol Raiz', 'Cresol Gerações'], key="ed_alcada_carregada", enable_events=True, expand_x=True))
+    lista_indices.append(sg.Text("Alçada"))
+    lista_indices.append(sg.Combo(['Sem Alçada','Padrão','Sicredi Raízes', 'Sicredi Conexão', 'Sicredi Região da Produção', 'Cresol Raiz', 'Cresol Gerações'], key="ed_alcada_carregada", enable_events=True, expand_x=True))
     frame_indices = sg.Frame('Índices de Correção', [lista_indices], expand_x=True)
 
     lista_informacoes = []
@@ -245,6 +246,7 @@ def main():
     lista_indices_parametros.append(sg.Checkbox(text='CDI', key='ed_cdi_param'))
     lista_indices_parametros.append(sg.Checkbox(text='INPC', key='ed_inpc_param'))
     lista_indices_parametros.append(sg.Checkbox(text='TR', key='ed_tr_param'))
+    lista_indices_parametros.append(sg.Checkbox(text='SELIC', key='ed_selic_param'))
     frame_indices_parametros = sg.Frame('Índices de Correção', [lista_indices_parametros], expand_x=True)
     
     lista_multa_parametros = []
@@ -405,6 +407,8 @@ def main():
             tela['ed_inpc_param'].update(parametros[3])
             tela['ed_tr'].update(parametros[4])
             tela['ed_tr_param'].update(parametros[4])
+            tela['ed_selic'].update(parametros[11])
+            tela['ed_selic_param'].update(parametros[11])
 
             tela['ed_multa_perc'].update(parametros[5])
             tela['ed_multa_perc_param'].update(parametros[5])
@@ -488,9 +492,21 @@ def main():
             progress_bar.update(visible=False)
             progress_bar.UpdateBar(0)                        
 
+            if eventos == 'ed_alcada_carregada':
+                if valores['-INPUT-'] != '':
+                    if valores['ed_alcada_carregada'] == 'Sem Alçada':
+                        fichas_alcadas = []
+                    else:
+                        carregaAlcadasPadrao(valores['ed_alcada_carregada'])
+                    #    atualizaInfo()
+            
             ## Chamar tela das alçadas
             if eventos == 'btn_alcadas':                  
-                telaAlcadas(False, valores['ed_alcada_carregada'])
+                if valores['ed_alcada_carregada'] != 'Sem Alçada':
+                    telaAlcadas(False, valores['ed_alcada_carregada'])
+                else:
+                    sg.popup('Não é possível configurar alçadas para o modo "Sem Alçada" que está selecionado no campo "Alçada". \
+                        Caso dejese configurar alçadas para calcular uma ficha gráfica é necessário alterar a alçada selecionada.')
 
             ## Chamar tela alçadas padrão(parâmetros)
             if eventos == 'btn_alcadas_padrao':
@@ -539,6 +555,7 @@ def main():
                             tela['ed_cdi'].update(parametros_ficha[2])
                             tela['ed_inpc'].update(parametros_ficha[3])
                             tela['ed_tr'].update(parametros_ficha[4])
+                            tela['ed_selic'].update(parametros_ficha[11])
 
                             tela['ed_multa_perc'].update(parametros_ficha[5])
                             tela['ed_multa_valor'].update(parametros_ficha[6])
@@ -689,7 +706,7 @@ def main():
                         voutros_valor_param = float(voutros_valor_param)
 
                     try:
-                        if f.salvarParametrosGerais(valores['ed_igpm_param'], valores['ed_ipca_param'], valores['ed_cdi_param'], valores['ed_inpc_param'], valores['ed_tr_param'], vmulta_perc_param, vmulta_valor_param, vincidencia_param, vhonorarios_perc_param, vhonorarios_valor_param, voutros_valor_param):
+                        if f.salvarParametrosGerais(valores['ed_igpm_param'], valores['ed_ipca_param'], valores['ed_cdi_param'], valores['ed_inpc_param'], valores['ed_tr_param'], vmulta_perc_param, vmulta_valor_param, vincidencia_param, vhonorarios_perc_param, vhonorarios_valor_param, voutros_valor_param, valores['ed_selic_param']):
                             carregaParametros(tela)
                             sg.popup('Parâmetros definidos com sucesso!')
                     except Exception as erro:
@@ -700,6 +717,9 @@ def main():
                     carregaParametros(tela)
             
             if eventos == 'Calcular':
+                
+                if valores['ed_alcada_carregada'] == 'Sem Alçada':
+                    fichas_alcadas = []
 
                 ## Se tentar calcular uma ficha já importada
                 if id_ficha_grafica > 0:
@@ -756,6 +776,7 @@ def main():
                                 'cdi'              : valores['ed_cdi'],
                                 'inpc'             : valores['ed_inpc'],
                                 'tr'               : valores['ed_tr'],
+                                'selic'            : valores['ed_selic'],
                                 'multa_perc'       : vmulta_perc,
                                 'multa_valor'      : vmulta_valor,
                                 'multa_incidencia' : vincidencia,
@@ -798,6 +819,15 @@ def main():
                         remove_arquivo   = True                    
                     else:
                         arquivo_importar = caminho
+
+                    if f.identificaVersao(arquivo_importar) == 'cresol':
+                        ## Utiliza a mesma função de importar, porém, definido flag para True
+                        dados, cooperativa_selecionada = cresol.importar_cabecalho(arquivo_importar, True)
+                    else:
+                        ## Utiliza a mesma função de importar, porém, definido flag para True
+                        dados, cooperativa_selecionada = sicredi.importaFichaGrafica(arquivo_importar, True)
+
+                    # print(dados)
 
                     progress_bar.UpdateBar(34)
 
@@ -851,6 +881,8 @@ def main():
                             indicesCorrecao.append({'nome': 'INPC', 'ativo': True})
                         if parametros['tr']:
                             indicesCorrecao.append({'nome': 'TR', 'ativo': True})
+                        if parametros['selic']:
+                            indicesCorrecao.append({'nome': 'SELIC', 'ativo': True})    
 
                         # Caclula Juros Simples
                         f.geraPDFCalculo(cursor=cursor,
@@ -867,6 +899,8 @@ def main():
                                          adicionalHonorarios=adicionalHonorarios,
                                          adicionalOutrosValores=adicionalOutrosValores,
                                          alcadas=fichas_alcadas,
+                                         dataPrejuizo=dados[10],
+                                         juros_moratorios=dados[11],
                                          isCresol=versao == 'cresol')
                         progress_bar.UpdateBar(95)
 

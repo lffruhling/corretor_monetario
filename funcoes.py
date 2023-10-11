@@ -670,7 +670,7 @@ def geraArquivoPdf(parametros, jurosMoratorios, dataInadimplencia, multa, totalL
 
     if gerarArquivo:
         ## Gera o relatório e transforma em .pdf
-        template = DocxTemplate('relatorio/Template4.docx')
+        template = DocxTemplate('Template4.docx')
         template.render({
             "calculos": calculos,
             "nome_associado": nomeAssociado,

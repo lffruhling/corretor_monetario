@@ -17,7 +17,7 @@ from docx2pdf import convert
 #Interface
 import PySimpleGUI as sg
 
-versaoExe = '1.0.1'
+versaoExe = '1.0.3'
 
 vPath    = 'C:/Temp/Fichas_Graficas'
 versao   = ''
@@ -177,7 +177,7 @@ def main():
     maquina            = f.pegarNomeMaquina() 
     ultima_versao      = f.BuscaUltimaVersao()
     
-    versao_exe         = '1.0.1' 
+    versao_exe         = '1.0.3' 
     
     versao_descricao   = 'Atualizado'
     if(versao_exe != ultima_versao):

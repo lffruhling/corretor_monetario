@@ -1,4 +1,4 @@
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 import funcoes as f
 import time
 
@@ -45,9 +45,10 @@ def importar_cabecalho(vArquivoTxt, informacoes=False):
     cooperativa_carregada = 'Padrão'
     global titulo
     global modalidade_amortizacao
-    with open(vArquivoTxt, 'r') as arquivo:        
+    global dataEntradaPrejuizo
+    with open(vArquivoTxt, 'r') as arquivo:
         vlinha = 1
-        for linha in arquivo:                                    
+        for linha in arquivo:
             if vlinha <= 50:
                 if ("Cód. Cooperativa" in linha and vlinha <= 5):
                     if('GERAÇÕES' in linha):
@@ -118,26 +119,44 @@ def importar_cabecalho(vArquivoTxt, informacoes=False):
                     vcontrato  = linha.split(":")
                     vcontrato  = vcontrato[1].replace(" ", "")
                     titulo     = vcontrato.rstrip('\n')
-                    
-                #if dataEntradaPrejuizo is None:
-                #    vparcela = parcela                
-                #    if (parcela == parcelas):
-                #        vparcela = parcela -1
-                #    dataEntradaPrejuizo = pegaDataVencimentoParcela(linha, vparcela)
-                
-                ## Parcela Atual
-                #if("Nome:" in linha):   
-                #    vnome     = linha.split(":")
-                #    associado = vnome[1][1:]
-            else:
-                break
 
+                if("Juros de Mora:" in linha):
+                    juros_moratorios  = linha.split(":")
+                    juros_moratorios  = juros_moratorios[1].replace(" ", "").replace("%", "")
+                    juros_moratorios  = float(str(juros_moratorios).replace(",", "."))
+
+
+            elif "Saldo Parcela até" in linha:
+                if dataEntradaPrejuizo is None:
+                    linha_atual = linha.split(" ", 4)
+                    valor_saldo = float(linha_atual[4].replace(".", "").replace(",","."))
+
+                    if valor_saldo > 0:
+                        linha_anterior = vLinhaAnterior.split(" ", 4)
+                        dataEntradaPrejuizo = datetime.strptime(linha_anterior[1], "%d/%m/%Y")
+                        dataEntradaPrejuizo = dataEntradaPrejuizo + timedelta(days=1)
+                        dataEntradaPrejuizo = dataEntradaPrejuizo.strftime("%d/%m/%Y")
+                        break
+
+            vLinhaAnterior = linha
             vlinha = vlinha + 1
 
     ## Executa a Inserção do cabeçalho no BD
 
     if informacoes:
-        infos = 'Coop.: Cresol   Modalidade: ' + str(modalidade_amortizacao), 'Associado: '+ str(associado), 'Data de Liberação: ' + str(data_liberacao.strftime('%d/%m/%Y')), 'Número de Parcelas: ' + str(parcelas), parcela, 'Título: ' + titulo, 'Taxa de Juros: ' + str(tx_juro), 'Multa: ' + str(multa), 'Valor Financiado: ' + str(valor_financiado)
+        infos = ('Coop.: Cresol   Modalidade: ' + str(modalidade_amortizacao),
+                 'Associado: '+ str(associado),
+                 'Data de Liberação: ' + str(data_liberacao.strftime('%d/%m/%Y')),
+                 'Número de Parcelas: ' + str(parcelas),
+                 'Parcela atual: ' + str(parcela),
+                 'Título: ' + titulo,
+                 'Taxa de Juros: ' + str(tx_juro),
+                 'Valor Financiado: ' + str(valor_financiado),
+                 'Data da Inadimplência: ' + dataEntradaPrejuizo,
+                 "Juros Moratórios: " + str(juros_moratorios),
+                 dataEntradaPrejuizo,
+                 juros_moratorios
+                 )
         return infos, cooperativa_carregada
     else:
         db     = f.conexao()
@@ -148,11 +167,12 @@ def importar_cabecalho(vArquivoTxt, informacoes=False):
         cursor.fetchall()
         db.commit()
 
-        vsql = 'INSERT INTO ficha_grafica(versao, associado, liberacao, nro_parcelas, parcela, situacao, titulo, tx_juro, multa, valor_financiado, modalidade_amortizacao, data_importacao)\
-            VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+        vsql = 'INSERT INTO ficha_grafica(versao, associado, liberacao, nro_parcelas, parcela, situacao, titulo, tx_juro, multa, valor_financiado, modalidade_amortizacao, entrada_prejuizo, data_importacao)\
+            VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
         
         data_atual = date.today()
-        parametros = ('cresol', str(associado), data_liberacao, parcelas, parcela, 'ATIVO', titulo, tx_juro, multa, valor_financiado, modalidade_amortizacao, data_atual)
+        dataEntradaPrejuizo = datetime.strptime(dataEntradaPrejuizo, "%d/%m/%Y")
+        parametros = ('cresol', str(associado), data_liberacao, parcelas, parcela, 'ATIVO', titulo, tx_juro, multa, valor_financiado, modalidade_amortizacao, dataEntradaPrejuizo, data_atual)
 
         cursor.execute(vsql, parametros)
         resultado = cursor.fetchall()

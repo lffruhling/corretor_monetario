@@ -358,7 +358,18 @@ def importaFichaGrafica(vCaminhoTxt, informacoes=False):
         print('Data Entrada Prejuizo: ' + str(dataEntradaPrejuizo)) #Salvar a data de entrada no prejuizo na base
 
     if informacoes:
-        infos = 'Coop: Sicredi   Modalidade: ' + str(modalidade_amortizacao), 'Associado: ' + str(associado), 'Data de Liberação: ' + str(liberacao.strftime('%d/%m/%Y')), 'Número de Parcelas: ' + str(nro_parcelas), 'Parcela atual: ' + str(parcela), 'Título: ' + str(titulo), 'Taxa de Juros: ' + str(taxa_juro), 'Valor Financiado: ' + str(valor_financiado), 'Data da Inadimplência: ' + dataEntradaPrejuizo.strftime("%d/%m/%Y"), "Juros Moratórios: " + str(juros_moratorios),  dataEntradaPrejuizo.strftime("%d/%m/%Y"), juros_moratorios
+        infos = ('Coop: Sicredi   Modalidade: ' + str(modalidade_amortizacao),
+                 'Associado: ' + str(associado),
+                 'Data de Liberação: ' + str(liberacao.strftime('%d/%m/%Y')),
+                 'Número de Parcelas: ' + str(nro_parcelas),
+                 'Parcela atual: ' + str(parcela),
+                 'Título: ' + str(titulo),
+                 'Taxa de Juros: ' + str(taxa_juro),
+                 'Valor Financiado: ' + str(valor_financiado),
+                 'Data da Inadimplência: ' + dataEntradaPrejuizo.strftime("%d/%m/%Y"),
+                 "Juros Moratórios: " + str(juros_moratorios),
+                 dataEntradaPrejuizo.strftime("%d/%m/%Y"),
+                 juros_moratorios)
         return infos, cooperativa_carregada
     else:            
         db     = f.conexao()

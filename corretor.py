@@ -17,7 +17,7 @@ from docx2pdf import convert
 #Interface
 import PySimpleGUI as sg
 
-versaoExe = '1.0.3'
+versaoExe = '1.0.4'
 
 vPath    = 'C:/Temp/Fichas_Graficas'
 versao   = ''
@@ -177,7 +177,7 @@ def main():
     maquina            = f.pegarNomeMaquina() 
     ultima_versao      = f.BuscaUltimaVersao()
     
-    versao_exe         = '1.0.3' 
+    versao_exe         = '1.0.4' 
     
     versao_descricao   = 'Atualizado'
     if(versao_exe != ultima_versao):
@@ -365,6 +365,7 @@ def main():
             if f.identificaVersao(arquivo_tmp) == 'cresol':
                 ## Utiliza a mesma função de importar, porém, definido flag para True
                 dados, cooperativa_selecionada = cresol.importar_cabecalho(arquivo_tmp, True)
+                print(cooperativa_selecionada)
                 tela['ed_alcada_carregada'].update(cooperativa_selecionada)
                 carregaAlcadasPadrao(cooperativa_selecionada)
             else:

@@ -53,8 +53,8 @@ def importar_cabecalho(vArquivoTxt, informacoes=False):
                 if ("Cód. Cooperativa" in linha and vlinha <= 5):
                     if('GERAÇÕES' in linha):
                         cooperativa_carregada = 'Cresol Gerações'
-                    if('RAÍZ' in linha):
-                        cooperativa_carregada = 'Cresol Raíz'
+                    if(('RAÍZ' in linha)or('RAIZ' in linha)):
+                        cooperativa_carregada = 'Cresol Raiz'
                 
                 if("Parcelas:" in linha):                
                     parcelas = int(linha[10:15].replace(" ",""))

@@ -46,7 +46,10 @@ def importar_cabecalho(vArquivoTxt, informacoes=False):
     global titulo
     global modalidade_amortizacao
     global dataEntradaPrejuizo
-    with open(vArquivoTxt, 'r') as arquivo:
+    with open(vArquivoTxt, 'r') as reader:
+        
+        arquivo = reader.readlines() 
+        
         vlinha = 1
         for linha in arquivo:
             if vlinha <= 50:
@@ -131,8 +134,30 @@ def importar_cabecalho(vArquivoTxt, informacoes=False):
                     linha_atual = linha.split(" ", 4)
                     valor_saldo = float(linha_atual[4].replace(".", "").replace(",","."))
 
-                    if valor_saldo > 0:
-                        linha_anterior = vLinhaAnterior.split(" ", 4)
+                    if valor_saldo > 0:                        
+                        #linha_anterior = vLinhaAnterior.split(" ", 4)
+                        
+                        qtd_linhas = 1
+                        posicao = (vlinha - qtd_linhas)
+                        linha_anterior = arquivo[posicao]
+                        
+                        while (("Parcela Vencimento Movimento" in linha_anterior) or
+                              ("Lançamentos até:" in linha_anterior) or
+                              ("Emissão do relatório" in linha_anterior) or
+                              ("Cód. Cooperativa" in linha_anterior) or
+                              ("GFE." in linha_anterior) or
+                              ("Saldo Parcela até" in linha_anterior)):
+                            
+                            qtd_linhas = qtd_linhas + 1
+                            posicao = (vlinha - qtd_linhas)
+                            print('LINHA: ' + str(posicao))
+                            linha_anterior = arquivo[vlinha - qtd_linhas].strip()
+                            print('Anterior: ' + linha_anterior)
+                            
+                        linha_anterior = linha_anterior.split(" ", 4)                          
+                        
+                       # print(f"Linha anterior: {linha_anterior}")
+                        print(f"Linha anterior: {linha_anterior[1]}")
                         dataEntradaPrejuizo = datetime.strptime(linha_anterior[1], "%d/%m/%Y")
                         dataEntradaPrejuizo = dataEntradaPrejuizo + timedelta(days=1)
                         dataEntradaPrejuizo = dataEntradaPrejuizo.strftime("%d/%m/%Y")
@@ -152,7 +177,7 @@ def importar_cabecalho(vArquivoTxt, informacoes=False):
                  'Título: ' + titulo,
                  'Taxa de Juros: ' + str(tx_juro),
                  'Valor Financiado: ' + str(valor_financiado),
-                 'Data da Inadimplência: ' + dataEntradaPrejuizo,
+                 'Data da Inadimplência: ' + str(dataEntradaPrejuizo),
                  "Juros Moratórios: " + str(juros_moratorios),
                  dataEntradaPrejuizo,
                  juros_moratorios

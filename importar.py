@@ -343,7 +343,13 @@ def importaFichaGrafica(vCaminhoTxt, informacoes=False):
 
             if("INADIMPLENCIA :" in linha):
                 vPosicao = str(linha).find(",")
-                fJuros_inadimplencia = float(str(linha[vPosicao-3:vPosicao+4]).strip().replace(",", "."))
+                valor_capturado = str(linha[vPosicao-3:vPosicao+4]).strip().replace(",", ".")
+                valor_capturado = valor_capturado.replace(" ", "")
+                letras = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','X','Z','W','-','%','$']
+                for letra in letras:
+                    valor_capturado = valor_capturado.replace(letra,""
+                                                              )
+                fJuros_inadimplencia = float(valor_capturado)
                 fTaxa_juro = float(str(taxa_juro).replace(",", "."))
                 juros_moratorios = fJuros_inadimplencia - fTaxa_juro
 

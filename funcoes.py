@@ -676,7 +676,9 @@ def geraArquivoPdf(parametros, jurosMoratorios, dataInadimplencia, multa, totalL
             "nome_associado": nomeAssociado,
             "numero_titulo": nroTitulo,
         })
-        vNomeArquivo = f'{path_destino}/CalculoTitulo_{nroTitulo}'
+
+        titulo = str(nroTitulo).replace("-","_").replace(",","").replace(".","")
+        vNomeArquivo = f'{path_destino}/CalculoTitulo_{titulo}'
         template.save(f'{vNomeArquivo}.docx')
         sys.stderr = open("C:/Temp/pdf_consoleoutput.log", "w")
         convert(f'{vNomeArquivo}.docx', f'{vNomeArquivo}.pdf')

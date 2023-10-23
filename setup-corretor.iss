@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Corretor Monetario"
-#define MyAppVersion "1.0.4"
+#define MyAppVersion "1.0.5"
 #define MyAppPublisher "DevBots"
 #define MyAppExeName "corretor.exe"
 
@@ -34,7 +34,8 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "C:\Temp\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Temp\arquivos_corretor\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\Users\lffru\Documents\Projetos\corretor_monetario\dist\corretor\_internal\*"; DestDir: "C:\Temp\corretor"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\Users\lffru\Documents\Projetos\corretor_monetario\dist\atualizador.exe"; DestDir: "C:\Temp\atualizador"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]

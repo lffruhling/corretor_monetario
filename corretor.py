@@ -10,6 +10,11 @@ import funcoes   as f
 import importar  as sicredi
 import importarc as cresol
 
+#E-mail Erro
+import sys
+import traceback
+from send_mail import enviar_email_erro
+
 #Relatorio
 from docxtpl import DocxTemplate
 from docx2pdf import convert
@@ -28,6 +33,17 @@ fichas_alcadas    = []
 tela = None
 
 id_ficha_grafica = 0
+
+def excecao_handler(excecao_tipo, excecao_valor, trace_back):
+    # Captura informações sobre a exceção
+    excecao = f"{excecao_tipo.__name__}: {excecao_valor}"
+    traceback_info = traceback.format_tb(trace_back)
+
+    # Envia e-mail com informações da exceção
+    enviar_email_erro(f"{excecao}\n\nDetalhes do Traceback:\n{''.join(traceback_info)}", 'COrretor Monetário')
+
+# Configura o manipulador de exceções global
+sys.excepthook = excecao_handler
 
 def atualizaStatus(texto_adicional):
     global tela

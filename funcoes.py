@@ -14,6 +14,23 @@ from docxtpl import DocxTemplate
 from docx2pdf import convert
 import sys
 
+#E-mail Erro
+import sys
+import traceback
+from send_mail import enviar_email_erro
+
+def excecao_handler(excecao_tipo, excecao_valor, trace_back):
+    # Captura informações sobre a exceção
+    excecao = f"{excecao_tipo.__name__}: {excecao_valor}"
+    traceback_info = traceback.format_tb(trace_back)
+
+    # Envia e-mail com informações da exceção
+    enviar_email_erro(f"{excecao}\n\nDetalhes do Traceback:\n{''.join(traceback_info)}", 'COrretor Monetário')
+
+# Configura o manipulador de exceções global
+sys.excepthook = excecao_handler
+
+
 
 def conexao():
     # return MySQLdb.connect(host="10.4.21.24", user='root', passwd='*Sicred1',db='db_teste')

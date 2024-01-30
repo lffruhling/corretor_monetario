@@ -9,7 +9,8 @@ def enviar_email_erro(excecao, nome_aplicacao):
     username = 'leonardofruhling@gmail.com'
     password = 'runm ttop mxzp ksxs'
     mail_from = 'leonardofruhling@gmail.com'
-    mail_to = 'leonardofruhling@gmail.com'
+    recipients = ['leonardofruhling@gmail.com, andrerobertoschwanke@gmail.com']
+    mail_to = ", ".join(recipients)
     mail_subject = f"Erro na Aplicação {nome_aplicacao}"
     mail_body = f"""\
     O seguinte erro ocorreu nna Aplicação {nome_aplicacao}:

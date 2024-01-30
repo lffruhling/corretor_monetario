@@ -184,6 +184,7 @@ imports:
  &#8226;   <a href="#re._constants">re._constants</a>
  &#8226;   <a href="#re._parser">re._parser</a>
  &#8226;   <a href="#reprlib">reprlib</a>
+ &#8226;   <a href="#send_mail">send_mail</a>
  &#8226;   <a href="#shutil">shutil</a>
  &#8226;   <a href="#sre_compile">sre_compile</a>
  &#8226;   <a href="#sre_constants">sre_constants</a>
@@ -6613,6 +6614,7 @@ imported by:
  &#8226;   <a href="#requests.auth">requests.auth</a>
  &#8226;   <a href="#secrets">secrets</a>
  &#8226;   <a href="#setuptools._distutils.command.upload">setuptools._distutils.command.upload</a>
+ &#8226;   <a href="#smtplib">smtplib</a>
  &#8226;   <a href="#ssl">ssl</a>
  &#8226;   <a href="#urllib.request">urllib.request</a>
  &#8226;   <a href="#urllib3.util.request">urllib3.util.request</a>
@@ -8636,6 +8638,7 @@ imported by:
  &#8226;   <a href="#requests.cookies">requests.cookies</a>
  &#8226;   <a href="#setuptools._distutils.cygwinccompiler">setuptools._distutils.cygwinccompiler</a>
  &#8226;   <a href="#setuptools._vendor.pyparsing.core">setuptools._vendor.pyparsing.core</a>
+ &#8226;   <a href="#smtplib">smtplib</a>
  &#8226;   <a href="#tarfile">tarfile</a>
  &#8226;   <a href="#weakref">weakref</a>
  &#8226;   <a href="#webbrowser">webbrowser</a>
@@ -10968,6 +10971,7 @@ imported by:
  &#8226;   <a href="#requests.sessions">requests.sessions</a>
  &#8226;   <a href="#setuptools._vendor.pyparsing.common">setuptools._vendor.pyparsing.common</a>
  &#8226;   <a href="#setuptools._vendor.tomli._re">setuptools._vendor.tomli._re</a>
+ &#8226;   <a href="#smtplib">smtplib</a>
  &#8226;   <a href="#sqlite3.dbapi2">sqlite3.dbapi2</a>
  &#8226;   <a href="#tqdm.std">tqdm.std</a>
  &#8226;   <a href="#urllib3.connection">urllib3.connection</a>
@@ -14870,6 +14874,9 @@ imported by:
  &#8226;   <a href="#email.headerregistry">email.headerregistry</a>
  &#8226;   <a href="#email.iterators">email.iterators</a>
  &#8226;   <a href="#email.message">email.message</a>
+ &#8226;   <a href="#email.mime">email.mime</a>
+ &#8226;   <a href="#email.mime.base">email.mime.base</a>
+ &#8226;   <a href="#email.mime.nonmultipart">email.mime.nonmultipart</a>
  &#8226;   <a href="#email.parser">email.parser</a>
  &#8226;   <a href="#email.policy">email.policy</a>
  &#8226;   <a href="#email.quoprimime">email.quoprimime</a>
@@ -14989,6 +14996,7 @@ imports:
 imported by:
     <a href="#email.charset">email.charset</a>
  &#8226;   <a href="#email.header">email.header</a>
+ &#8226;   <a href="#smtplib">smtplib</a>
 
   </div>
 
@@ -15014,6 +15022,7 @@ imported by:
  &#8226;   <a href="#email.contentmanager">email.contentmanager</a>
  &#8226;   <a href="#email.header">email.header</a>
  &#8226;   <a href="#email.message">email.message</a>
+ &#8226;   <a href="#email.mime.text">email.mime.text</a>
  &#8226;   <a href="#email.utils">email.utils</a>
 
   </div>
@@ -15078,6 +15087,7 @@ imported by:
  &#8226;   <a href="#email.header">email.header</a>
  &#8226;   <a href="#email.headerregistry">email.headerregistry</a>
  &#8226;   <a href="#email.message">email.message</a>
+ &#8226;   <a href="#email.mime.nonmultipart">email.mime.nonmultipart</a>
  &#8226;   <a href="#urllib3.exceptions">urllib3.exceptions</a>
  &#8226;   <a href="#urllib3.util.response">urllib3.util.response</a>
 
@@ -15125,6 +15135,7 @@ imports:
   <div class="import">
 imported by:
     <a href="#email.message">email.message</a>
+ &#8226;   <a href="#smtplib">smtplib</a>
 
   </div>
 
@@ -15217,6 +15228,7 @@ imported by:
     <a href="#cgi">cgi</a>
  &#8226;   <a href="#email.contentmanager">email.contentmanager</a>
  &#8226;   <a href="#email.feedparser">email.feedparser</a>
+ &#8226;   <a href="#email.mime.base">email.mime.base</a>
  &#8226;   <a href="#email.policy">email.policy</a>
  &#8226;   <a href="#http.client">http.client</a>
  &#8226;   <a href="#importlib.metadata._adapters">importlib.metadata._adapters</a>
@@ -15224,6 +15236,100 @@ imported by:
  &#8226;   <a href="#setuptools._vendor.importlib_metadata._adapters">setuptools._vendor.importlib_metadata._adapters</a>
  &#8226;   <a href="#setuptools.config._validate_pyproject.formats">setuptools.config._validate_pyproject.formats</a>
  &#8226;   <a href="#setuptools.dist">setuptools.dist</a>
+ &#8226;   <a href="#smtplib">smtplib</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="email.mime"></a>
+  <a target="code" href="///C:/Users/Andre/AppData/Local/Programs/Python/Python311/Lib/email/mime/__init__.py" type="text/plain"><tt>email.mime</tt></a>
+<span class="moduletype">Package</span>  <div class="import">
+imports:
+    <a href="#email">email</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#email.mime.base">email.mime.base</a>
+ &#8226;   <a href="#email.mime.multipart">email.mime.multipart</a>
+ &#8226;   <a href="#email.mime.nonmultipart">email.mime.nonmultipart</a>
+ &#8226;   <a href="#email.mime.text">email.mime.text</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="email.mime.base"></a>
+  <a target="code" href="///C:/Users/Andre/AppData/Local/Programs/Python/Python311/Lib/email/mime/base.py" type="text/plain"><tt>email.mime.base</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#email">email</a>
+ &#8226;   <a href="#email.message">email.message</a>
+ &#8226;   <a href="#email.mime">email.mime</a>
+ &#8226;   <a href="#email.policy">email.policy</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#email.mime.multipart">email.mime.multipart</a>
+ &#8226;   <a href="#email.mime.nonmultipart">email.mime.nonmultipart</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="email.mime.multipart"></a>
+  <a target="code" href="///C:/Users/Andre/AppData/Local/Programs/Python/Python311/Lib/email/mime/multipart.py" type="text/plain"><tt>email.mime.multipart</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#email.mime">email.mime</a>
+ &#8226;   <a href="#email.mime.base">email.mime.base</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#send_mail">send_mail</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="email.mime.nonmultipart"></a>
+  <a target="code" href="///C:/Users/Andre/AppData/Local/Programs/Python/Python311/Lib/email/mime/nonmultipart.py" type="text/plain"><tt>email.mime.nonmultipart</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#email">email</a>
+ &#8226;   <a href="#email.errors">email.errors</a>
+ &#8226;   <a href="#email.mime">email.mime</a>
+ &#8226;   <a href="#email.mime.base">email.mime.base</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#email.mime.text">email.mime.text</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="email.mime.text"></a>
+  <a target="code" href="///C:/Users/Andre/AppData/Local/Programs/Python/Python311/Lib/email/mime/text.py" type="text/plain"><tt>email.mime.text</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#email.charset">email.charset</a>
+ &#8226;   <a href="#email.mime">email.mime</a>
+ &#8226;   <a href="#email.mime.nonmultipart">email.mime.nonmultipart</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#send_mail">send_mail</a>
 
   </div>
 
@@ -15269,6 +15375,7 @@ imports:
   <div class="import">
 imported by:
     <a href="#email.message">email.message</a>
+ &#8226;   <a href="#email.mime.base">email.mime.base</a>
 
   </div>
 
@@ -15321,6 +15428,7 @@ imported by:
  &#8226;   <a href="#email.message">email.message</a>
  &#8226;   <a href="#email.policy">email.policy</a>
  &#8226;   <a href="#http.server">http.server</a>
+ &#8226;   <a href="#smtplib">smtplib</a>
  &#8226;   <a href="#urllib.request">urllib.request</a>
  &#8226;   <a href="#urllib3.fields">urllib3.fields</a>
 
@@ -18041,8 +18149,10 @@ imports:
  &#8226;   <a href="#locale">locale</a>
  &#8226;   <a href="#os">os</a>
  &#8226;   <a href="#requests">requests</a>
+ &#8226;   <a href="#send_mail">send_mail</a>
  &#8226;   <a href="#socket">socket</a>
  &#8226;   <a href="#sys">sys</a>
+ &#8226;   <a href="#traceback">traceback</a>
  &#8226;   <a href="#wget">wget</a>
  &#8226;   <a href="#winreg">winreg</a>
 
@@ -18551,6 +18661,7 @@ imported by:
     <a href="#cryptography.hazmat.primitives.constant_time">cryptography.hazmat.primitives.constant_time</a>
  &#8226;   <a href="#multiprocessing.connection">multiprocessing.connection</a>
  &#8226;   <a href="#secrets">secrets</a>
+ &#8226;   <a href="#smtplib">smtplib</a>
  &#8226;   <a href="#urllib3.util.ssl_">urllib3.util.ssl_</a>
 
   </div>
@@ -18926,7 +19037,10 @@ imports:
     <a href="#datetime">datetime</a>
  &#8226;   <a href="#funcoes">funcoes</a>
  &#8226;   <a href="#re">re</a>
+ &#8226;   <a href="#send_mail">send_mail</a>
+ &#8226;   <a href="#sys">sys</a>
  &#8226;   <a href="#time">time</a>
+ &#8226;   <a href="#traceback">traceback</a>
 
   </div>
   <div class="import">
@@ -18944,7 +19058,10 @@ imported by:
 imports:
     <a href="#datetime">datetime</a>
  &#8226;   <a href="#funcoes">funcoes</a>
+ &#8226;   <a href="#send_mail">send_mail</a>
+ &#8226;   <a href="#sys">sys</a>
  &#8226;   <a href="#time">time</a>
+ &#8226;   <a href="#traceback">traceback</a>
 
   </div>
   <div class="import">
@@ -19767,6 +19884,7 @@ imported by:
  &#8226;   <a href="#shlex">shlex</a>
  &#8226;   <a href="#site">site</a>
  &#8226;   <a href="#six">six</a>
+ &#8226;   <a href="#smtplib">smtplib</a>
  &#8226;   <a href="#socket">socket</a>
  &#8226;   <a href="#socketserver">socketserver</a>
  &#8226;   <a href="#subprocess">subprocess</a>
@@ -44482,6 +44600,7 @@ imported by:
  &#8226;   <a href="#setuptools.glob">setuptools.glob</a>
  &#8226;   <a href="#setuptools.wheel">setuptools.wheel</a>
  &#8226;   <a href="#shlex">shlex</a>
+ &#8226;   <a href="#smtplib">smtplib</a>
  &#8226;   <a href="#sre_compile">sre_compile</a>
  &#8226;   <a href="#sre_constants">sre_constants</a>
  &#8226;   <a href="#sre_parse">sre_parse</a>
@@ -45220,6 +45339,28 @@ imported by:
  &#8226;   <a href="#socket">socket</a>
  &#8226;   <a href="#socketserver">socketserver</a>
  &#8226;   <a href="#subprocess">subprocess</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="send_mail"></a>
+  <a target="code" href="///C:/Users/Andre/Documents/Python/corretor_monetario/send_mail.py" type="text/plain"><tt>send_mail</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#email.mime.multipart">email.mime.multipart</a>
+ &#8226;   <a href="#email.mime.text">email.mime.text</a>
+ &#8226;   <a href="#smtplib">smtplib</a>
+ &#8226;   <a href="#traceback">traceback</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#corretor.pyw">corretor.pyw</a>
+ &#8226;   <a href="#funcoes">funcoes</a>
+ &#8226;   <a href="#importar">importar</a>
+ &#8226;   <a href="#importarc">importarc</a>
 
   </div>
 
@@ -49514,6 +49655,35 @@ imported by:
 </div>
 
 <div class="node">
+  <a name="smtplib"></a>
+  <a target="code" href="///C:/Users/Andre/AppData/Local/Programs/Python/Python311/Lib/smtplib.py" type="text/plain"><tt>smtplib</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#base64">base64</a>
+ &#8226;   <a href="#copy">copy</a>
+ &#8226;   <a href="#datetime">datetime</a>
+ &#8226;   <a href="#email.base64mime">email.base64mime</a>
+ &#8226;   <a href="#email.generator">email.generator</a>
+ &#8226;   <a href="#email.message">email.message</a>
+ &#8226;   <a href="#email.utils">email.utils</a>
+ &#8226;   <a href="#hmac">hmac</a>
+ &#8226;   <a href="#io">io</a>
+ &#8226;   <a href="#re">re</a>
+ &#8226;   <a href="#socket">socket</a>
+ &#8226;   <a href="#ssl">ssl</a>
+ &#8226;   <a href="#sys">sys</a>
+ &#8226;   <a href="#warnings">warnings</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#send_mail">send_mail</a>
+
+  </div>
+
+</div>
+
+<div class="node">
   <a name="socket"></a>
   <a target="code" href="///C:/Users/Andre/AppData/Local/Programs/Python/Python311/Lib/socket.py" type="text/plain"><tt>socket</tt></a>
 <span class="moduletype">SourceModule</span>  <div class="import">
@@ -49557,6 +49727,7 @@ imported by:
  &#8226;   <a href="#psutil._pssunos">psutil._pssunos</a>
  &#8226;   <a href="#requests.adapters">requests.adapters</a>
  &#8226;   <a href="#requests.utils">requests.utils</a>
+ &#8226;   <a href="#smtplib">smtplib</a>
  &#8226;   <a href="#socketserver">socketserver</a>
  &#8226;   <a href="#ssl">ssl</a>
  &#8226;   <a href="#urllib.request">urllib.request</a>
@@ -49763,6 +49934,7 @@ imported by:
  &#8226;   <a href="#http.client">http.client</a>
  &#8226;   <a href="#requests">requests</a>
  &#8226;   <a href="#setuptools.config._validate_pyproject.formats">setuptools.config._validate_pyproject.formats</a>
+ &#8226;   <a href="#smtplib">smtplib</a>
  &#8226;   <a href="#urllib.request">urllib.request</a>
  &#8226;   <a href="#urllib3">urllib3</a>
  &#8226;   <a href="#urllib3._base_connection">urllib3._base_connection</a>
@@ -50188,6 +50360,8 @@ imported by:
  &#8226;   <a href="#http.client">http.client</a>
  &#8226;   <a href="#http.server">http.server</a>
  &#8226;   <a href="#imp">imp</a>
+ &#8226;   <a href="#importar">importar</a>
+ &#8226;   <a href="#importarc">importarc</a>
  &#8226;   <a href="#importlib">importlib</a>
  &#8226;   <a href="#importlib._bootstrap_external">importlib._bootstrap_external</a>
  &#8226;   <a href="#importlib.metadata">importlib.metadata</a>
@@ -50374,6 +50548,7 @@ imported by:
  &#8226;   <a href="#shutil">shutil</a>
  &#8226;   <a href="#site">site</a>
  &#8226;   <a href="#six">six</a>
+ &#8226;   <a href="#smtplib">smtplib</a>
  &#8226;   <a href="#socket">socket</a>
  &#8226;   <a href="#socketserver">socketserver</a>
  &#8226;   <a href="#ssl">ssl</a>
@@ -51445,7 +51620,10 @@ imported by:
  &#8226;   <a href="#concurrent.futures.process">concurrent.futures.process</a>
  &#8226;   <a href="#corretor.pyw">corretor.pyw</a>
  &#8226;   <a href="#doctest">doctest</a>
+ &#8226;   <a href="#funcoes">funcoes</a>
  &#8226;   <a href="#http.cookiejar">http.cookiejar</a>
+ &#8226;   <a href="#importar">importar</a>
+ &#8226;   <a href="#importarc">importarc</a>
  &#8226;   <a href="#logging">logging</a>
  &#8226;   <a href="#multiprocessing.managers">multiprocessing.managers</a>
  &#8226;   <a href="#multiprocessing.pool">multiprocessing.pool</a>
@@ -51458,6 +51636,7 @@ imported by:
  &#8226;   <a href="#psutil._pslinux">psutil._pslinux</a>
  &#8226;   <a href="#py_compile">py_compile</a>
  &#8226;   <a href="#pydoc">pydoc</a>
+ &#8226;   <a href="#send_mail">send_mail</a>
  &#8226;   <a href="#setuptools._vendor.pyparsing.core">setuptools._vendor.pyparsing.core</a>
  &#8226;   <a href="#site">site</a>
  &#8226;   <a href="#socketserver">socketserver</a>
@@ -54460,6 +54639,7 @@ imported by:
  &#8226;   <a href="#setuptools.dist">setuptools.dist</a>
  &#8226;   <a href="#setuptools.installer">setuptools.installer</a>
  &#8226;   <a href="#shlex">shlex</a>
+ &#8226;   <a href="#smtplib">smtplib</a>
  &#8226;   <a href="#sqlite3">sqlite3</a>
  &#8226;   <a href="#sqlite3.dbapi2">sqlite3.dbapi2</a>
  &#8226;   <a href="#sre_compile">sre_compile</a>

@@ -696,10 +696,25 @@ def geraArquivoPdf(parametros, jurosMoratorios, dataInadimplencia, multa, totalL
 
         titulo = str(nroTitulo).replace("-","_").replace(",","").replace(".","")
         vNomeArquivo = f'{path_destino}/CalculoTitulo_{titulo}'
-        template.save(f'{vNomeArquivo}.docx')
-        sys.stderr = open("C:/Temp/pdf_consoleoutput.log", "w")
-        convert(f'{vNomeArquivo}.docx', f'{vNomeArquivo}.pdf')
-        os.remove(f'{vNomeArquivo}.docx')
+        
+        vNomeArquivo = f'{vNomeArquivo}_{datetime.now().strftime("%H-%M-%S")}'     
+        
+        vErro = False
+        vDetalheErro = ''
+                
+        try:
+            template.save(f'{vNomeArquivo}.docx')            
+            sys.stderr = open("C:/Temp/pdf_consoleoutput.log", "w")
+            convert(f'{vNomeArquivo}.docx', f'{vNomeArquivo}.pdf')
+            os.remove(f'{vNomeArquivo}.docx')
+        except Exception as erro:
+            vErro = True
+            vDetalheErro = erro            
+            
+        if vErro:
+            sg.popup_error('Ocorreu uma falha ao tentar gerar o novo resulado. IMPORTANTE: Feche os arquivos Word(.docx) abertos, após, tente novamente.',title='Falha ao gerar novo arquivo')
+            
+            
     else:
         return calculos
 
